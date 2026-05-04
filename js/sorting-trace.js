@@ -96,8 +96,7 @@ function traceHeap(input) {
 }
 
 const TRACERS = { merge: traceMerge, quick: traceQuick, heap: traceHeap, insertion: traceInsertion, selection: traceSelection };
-let traceStates = [];
-let traceIdx = 0;
+// traceStates / traceIdx live in js/state.js
 
 function initTrace(algoId) {
   traceStates = TRACERS[algoId](TRACE_SAMPLE);
