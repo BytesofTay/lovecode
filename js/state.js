@@ -26,6 +26,9 @@ let traceIdx = 0;
 let learnView = 'map';     // 'map' | 'detail'
 let learnTopicId = null;
 let learningState = {};    // { [topicId]: { videoWatched, complete, lastVisited } }
+// Lazy Mode: UI preference (localStorage). When ON, render lazyDetails instead of details.
+let lazyModeOn = false;
+try { lazyModeOn = JSON.parse(localStorage.getItem('lovecode_lazy_mode') || 'false'); } catch (_) {}
 
 // Mock interview
 let mockState = 'idle';   // 'idle' | 'active' | 'grading'

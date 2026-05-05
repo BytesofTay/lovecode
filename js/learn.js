@@ -117,6 +117,13 @@ function backToMap() {
   renderTopicMap();
 }
 
+function toggleLazyMode() {
+  lazyModeOn = !lazyModeOn;
+  try { localStorage.setItem('lovecode_lazy_mode', JSON.stringify(lazyModeOn)); } catch (_) {}
+  if (learnView === 'detail' && learnTopicId) renderTopicDetail(learnTopicId);
+  else renderTopicMap();
+}
+
 function topicProgress(t) {
   const p = t.practice || {};
   if (p.type === 'bigo') {
@@ -436,12 +443,25 @@ function renderTopicDetail(id) {
         <span class="topic-est">⏱ ${t.estMin} min</span>
       </div>
       <span class="topic-section-badge ${cls}">${t.section}</span>${t.capstone ? ' <span class="tag-capstone">CAPSTONE</span>' : t.advanced ? ' <span class="tag-advanced">ADVANCED</span>' : t.optional ? ' <span class="tag-optional">OPTIONAL</span>' : ''}
+      <div style="margin: 14px 0">
+        <button class="lazy-toggle ${lazyModeOn ? 'on' : ''}" onclick="toggleLazyMode()" title="Switch between technical and plain-English explanations">
+          ${lazyModeOn ? '😎 Lazy Mode' : '📚 Standard'}
+        </button>
+        ${lazyModeOn && (!t.lazyDetails || !t.lazyDetails.length) ? '<span class="lazy-coming-soon" style="margin-left:10px">No simple version yet — showing the standard one.</span>' : ''}
+      </div>
       <p style="color:var(--muted);font-size:14px;line-height:1.55;margin-bottom:22px">${t.summary}</p>
       ${t.capstone ? capstoneGateHtml() : ''}
       ${progressBarHtml(topicProgress(t))}
-      ${t.details && t.details.length ? `<div class="details-section">
-        ${t.details.map(d => `<div class="detail-block"><h4>${d.heading}</h4>${d.body}</div>`).join('')}
-      </div>` : (t.explanation ? `<div class="explanation-section"><h3>Understanding ${t.title}</h3>${t.explanation}</div>` : '')}
+      ${(() => {
+        const useLazy = lazyModeOn && t.lazyDetails && t.lazyDetails.length;
+        const blocks = useLazy ? t.lazyDetails : (t.details || []);
+        if (blocks.length) {
+          return `<div class="details-section">
+            ${blocks.map(d => `<div class="detail-block"><h4>${d.heading}</h4>${d.body}</div>`).join('')}
+          </div>`;
+        }
+        return t.explanation ? `<div class="explanation-section"><h3>Understanding ${t.title}</h3>${t.explanation}</div>` : '';
+      })()}
       ${t.examples && t.examples.length ? examplesHtml(t.examples, t.id) : ''}
       ${t.gotchas && t.gotchas.length ? `<div class="gotchas-section">
         <h3>⚠️ Watch out for</h3>

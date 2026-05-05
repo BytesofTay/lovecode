@@ -14,6 +14,20 @@ const LEARNING_TOPICS = [
       { heading: 'When to reach for it', body: `<p>Always. Every solution you propose in an interview should come with its time and space complexity. If your first idea is <code>O(n²)</code>, the interviewer will usually ask <em>"can you do better?"</em></p>
 <p>The two most common improvements: <strong>add a hash map</strong> (turns O(n²) into O(n) for "have I seen this?" patterns) or <strong>sort first</strong> (turns O(n²) into O(n log n) and unlocks binary search or two-pointer).</p>` }
     ],
+    lazyDetails: [
+      { heading: '🐢 How fast it gets slow',
+        body: `<p>Imagine you have a list of names. Finding one name takes some time. Now imagine the list is twice as long. Does finding a name take twice as long? Four times as long? Or barely any longer at all?</p>
+<p>Big-O is a label that answers that question. It tells you how an algorithm's speed changes when the list gets bigger. We don't care about exact seconds — we care about the SHAPE of the slowdown.</p>` },
+      { heading: 'The shapes, fastest to slowest',
+        body: `<p><strong>O(1)</strong> — looking up a phone number when you already know which page it's on. Doesn't matter how big the phone book is.</p>
+<p><strong>O(n)</strong> — reading every name in the phone book. Twice as big = twice the time.</p>
+<p><strong>O(log n)</strong> — guessing a number 1-100. You ask "higher or lower" and cut the range in half each time. A million choices? Only 20 guesses.</p>
+<p><strong>O(n²)</strong> — every person in a room shaking hands with every other person. 10 people = 45 handshakes. 100 people = ~5,000.</p>
+<p><strong>O(2ⁿ) and O(n!)</strong> — these blow up FAST. Avoid these unless the input is tiny.</p>` },
+      { heading: 'Why you care',
+        body: `<p>If your code is slow on a small list, it'll be impossibly slow on a big list. Big-O tells you ahead of time, before you run it on a million items and your program freezes.</p>
+<p>The interview rule of thumb: if you wrote two nested loops, that's O(n²) and your interviewer will ask "can you do better?" Usually the answer is "use a hash map" — which makes things O(n).</p>` }
+    ],
     examples: [
       { title: 'Two Sum — brute force vs hash map', problemId: 1,
         problem: 'Given an array of integers and a target, return the two indices that sum to target.',
@@ -194,6 +208,20 @@ def partition(arr, lo, hi):
       { heading: 'When to reach for it', body: `<p>The classic move: <strong>turn an O(n²) brute force into O(n)</strong>. Whenever you find yourself scanning the array to ask "have I seen this before?" or "is X here?", a hash map collapses that inner search to O(1).</p>
 <p>Common uses: counting frequencies (<code>{char: count}</code>), seen-set checks, memoization tables for DP, deduplication, grouping anagrams by sorted-key.</p>` }
     ],
+    lazyDetails: [
+      { heading: '🏋️ Like locker numbers in a gym',
+        body: `<p>You walk into a gym. You hand the worker your jacket. They give you a tag with a number on it — say, locker 47. They put your jacket in locker 47.</p>
+<p>Later, you come back with the tag. You don't have to peek into every locker. You just walk straight to locker 47 and grab your jacket.</p>
+<p>That's a hash map. The tag is the "key." The jacket is the "value." The locker number is computed from the tag (called a "hash"). No matter how many lockers there are — 100 or 100 million — finding your stuff takes the same tiny amount of time.</p>` },
+      { heading: 'Why this is magical',
+        body: `<p>The boring way to find something in a list of a million items: check each one until you find it. Maybe you get lucky and it's first. Maybe it's last. On average it takes 500,000 checks.</p>
+<p>The hash map way: jump straight to the right "locker." 1 step. Always.</p>
+<p>Trade-off: you need extra space for all the lockers. But if you have memory to spare, you've turned a slow problem into an instant one.</p>` },
+      { heading: 'When you reach for it',
+        body: `<p>Any time you find yourself thinking "have I seen this thing before?" or "what was the count of this item?" — that's a hash map.</p>
+<p>Counting how many times each letter appears in a word? Hash map. Looking up a friend by username? Hash map. Checking if you've already visited a node in a graph? Hash map.</p>
+<p>Two Sum is the textbook example: as you walk the array, you stash each number in a hash map. Then you can ask "have I already seen the number that pairs with this one?" in one step instead of scanning the whole array again.</p>` }
+    ],
     examples: [
       { title: 'Two Sum — index lookup', problemId: 1,
         problem: 'Return indices of two numbers that sum to target.',
@@ -272,6 +300,19 @@ snippet: `def two_sum(nums, target):
       { heading: 'When to reach for it', body: `<p><strong>Sorted array</strong> + a "find pair / triple" question → converging two-pointer.</p>
 <p><strong>Linked list</strong> + "find middle / nth from end / cycle" → same-direction two-pointer.</p>
 <p>If your array isn't sorted and the problem allows it, sort first — the O(n log n) sort cost is dwarfed by the O(n²) → O(n) savings.</p>` }
+    ],
+    lazyDetails: [
+      { heading: '👫 Two friends walking toward each other',
+        body: `<p>Picture a long line of people. You need to find two people whose ages add up to 100. The boring way: pair every person with every other person. With 1,000 people, that's 500,000 checks.</p>
+<p>The clever way: line everyone up by age, youngest to oldest. Two friends start at the ends — one at the youngest, one at the oldest. They yell their ages to each other.</p>
+<p>If their ages add up to too much, the older friend takes a step left (try someone younger). If they add up to too little, the younger friend takes a step right. They keep walking. Either they meet in the middle (no answer exists), or their numbers add to 100 (found it!).</p>` },
+      { heading: 'Why it works',
+        body: `<p>Each step, you rule out a possibility forever. The older friend stepping left says "no need to check ANY pair where I'm involved with someone older — they'd all be too big too." That's the magic.</p>
+<p>You started with 1,000 people, and you only ever take 1,000 total steps. Way better than 500,000.</p>` },
+      { heading: 'When this trick works',
+        body: `<p>You need the list to be SORTED. That's the whole reason "step left = smaller, step right = bigger" is meaningful.</p>
+<p>Common uses: finding pairs/triples that sum to a target, checking palindromes (start and end characters should match), squeezing the most water in a container.</p>
+<p>If the list isn't sorted, sort it first. The cost of sorting is way less than the cost of brute force.</p>` }
     ],
     examples: [
       { title: 'Valid Palindrome — converging compare', problemId: 56,
@@ -366,6 +407,19 @@ snippet: `def is_palindrome(s):
       { heading: 'When to reach for it', body: `<p>Whenever you see "longest/shortest/max/min subarray (or substring) such that X" — sliding window is the answer.</p>
 <p>Track window state efficiently: hash map for substring problems, running sum for sum-based, counter for distinct chars. Recomputing the whole window each step makes it O(n²).</p>` }
     ],
+    lazyDetails: [
+      { heading: '🔦 Like a flashlight beam moving along a row',
+        body: `<p>Imagine a long row of objects on a shelf. You have a flashlight that can light up some of them — say, 5 in a row. You can stretch the beam wider or pull it narrower. You can slide the beam left or right.</p>
+<p>Your job: find the brightest stretch of objects (or the longest stretch with no two of the same color, or the shortest stretch worth $50, etc.). You don't lift the flashlight off the shelf — you just stretch and slide it.</p>` },
+      { heading: 'How it works',
+        body: `<p>You have two ends of the beam — call them L (left) and R (right). You always move them forward (rightward).</p>
+<p><strong>Grow</strong>: extend the right edge to add a new object to the beam. <strong>Shrink</strong>: pull the left edge in if the beam now breaks a rule (too many duplicates, sum too big, etc.).</p>
+<p>Every object enters the beam once and leaves once. Total work: small. The slow way would be to try every possible beam position from scratch — way more work.</p>` },
+      { heading: 'When you reach for it',
+        body: `<p>Anytime the problem says "find the longest/shortest/best stretch in a row of things." Common ones:</p>
+<p>• Longest substring with no repeats<br>• Smallest subarray that sums to at least K<br>• Maximum sum of any 5-in-a-row</p>
+<p>The clue is that you're looking at a CONTIGUOUS chunk (no skipping items in the middle). If the chunk doesn't have to be contiguous, sliding window doesn't apply — you might need DP instead.</p>` }
+    ],
     examples: [
       { title: 'Longest Substring Without Repeating — variable-size max', problemId: 50,
         problem: 'Length of the longest substring without repeating characters.',
@@ -458,6 +512,18 @@ snippet: `def length_of_longest_substring(s):
 <p>Recursion uses <strong>O(depth)</strong> stack space. Most languages crash around 10,000–100,000 levels deep — for very deep recursion you might need to convert to iteration with an explicit stack.</p>` },
       { heading: 'When to reach for it', body: `<p>Recursion shines for naturally recursive structures — trees, nested data, divide-and-conquer. Tree traversal, merge sort, backtracking — all simpler as recursion than as loops.</p>
 <p>If you find yourself with <strong>overlapping recursive calls</strong> (the same subproblem solved many times), add memoization → it becomes <strong>Dynamic Programming</strong>.</p>` }
+    ],
+    lazyDetails: [
+      { heading: '🪆 Like Russian nesting dolls',
+        body: `<p>Imagine you open a big doll. Inside is a smaller doll that looks just like it, only tinier. You open that one — even smaller doll. You keep going until you find the tiniest doll that has nothing inside.</p>
+<p>That's recursion. A function "opens itself up" and finds a smaller version of the same problem inside. You keep solving smaller versions until you hit the tiniest one. Then everything stacks back up and gives you the answer.</p>` },
+      { heading: 'The two pieces every recursion needs',
+        body: `<p><strong>1. A stop sign</strong> (the "base case"). A rule that says "OK, this version is small enough — just answer directly." Without this, you'd open dolls forever.</p>
+<p><strong>2. A smaller-self call.</strong> Instead of solving the whole thing, you solve a smaller piece and ask yourself to handle the rest.</p>
+<p>Example: how do you compute 5 × 4 × 3 × 2 × 1? You say "5 times the answer to 4 × 3 × 2 × 1." Then you ask yourself the smaller question. Eventually you hit "1" — that's the stop sign.</p>` },
+      { heading: 'When to reach for it',
+        body: `<p>Whenever a problem can be described as "do this thing, then do the same thing on a smaller piece." Trees, mazes, file folders inside file folders, undo histories.</p>
+<p>If you can phrase the problem as "...and then I do the same thing again on what's left," recursion fits. If the SAME smaller question keeps coming up multiple times, that's a clue you should also remember the answer (that's called memoization, and it turns recursion into DP).</p>` }
     ],
     examples: [
       { title: 'Factorial — the canonical example', problemId: null,
@@ -868,6 +934,20 @@ def level_order(root):
 <p><strong>Trie</strong>: tree of characters where each path spells a word. O(L) prefix lookup. Used in autocomplete and Word Search II.</p>` },
       { heading: 'When to reach for it', body: `<p>Most tree problems are solved with <strong>recursion</strong>. The standard template: handle null, recurse on left and right, combine results.</p>
 <p>If you find yourself wanting random access by value, a BST gives you O(log n) operations. If you need prefix matching on strings, a Trie is the answer. For path-based problems, post-order is usually right.</p>` }
+    ],
+    lazyDetails: [
+      { heading: '👨‍👩‍👧 Like a family tree',
+        body: `<p>You at the top. Below you, your parents. Below them, their parents. Each person can have a few kids "below" them, but no one is their own grandparent — there are no loops.</p>
+<p>That's a tree. The person at the top is the "root." Each person below is connected to one parent. People with no kids of their own are "leaves."</p>
+<p>A "binary" tree just means each person has at most TWO kids. That's the kind that shows up in interviews.</p>` },
+      { heading: 'How you walk a tree',
+        body: `<p>You usually want to visit every person in the tree. There's no single right order — there are three classic ones:</p>
+<p><strong>Top-down</strong>: visit the root, then left side, then right side. Used to copy or print a tree.</p>
+<p><strong>Inside</strong>: visit left side, then root, then right side. On a "search tree" (where left < parent < right), this gives you everyone in sorted order.</p>
+<p><strong>Bottom-up</strong>: visit left side, then right side, then root. Used when you need answers from your kids before you can answer for yourself (like "how tall is my subtree?").</p>` },
+      { heading: 'Why recursion is the natural fit',
+        body: `<p>A tree is just a person with smaller trees hanging off them. So writing tree code is just: "do something at this node, then ask the same question of my left subtree, then my right subtree."</p>
+<p>That self-referential pattern is exactly what recursion is built for. Almost every tree problem reduces to: handle the empty case, do something with the current node, recurse on the children.</p>` }
     ],
     examples: [
       { title: 'Maximum Depth — recursion template', problemId: 60,
@@ -1300,6 +1380,21 @@ def min_meeting_rooms(intervals):
 <p>"Smallest/largest x such that f(x) is true" where f is monotonic → binary search on values, not indices.</p>
 <p>Examples: capacity to ship in d days, Koko eating bananas, find peak in mountain array. Whenever you can phrase it as "is x feasible?", you can binary search.</p>` }
     ],
+    lazyDetails: [
+      { heading: '🎯 Like guessing a number 1 to 100',
+        body: `<p>I'm thinking of a number between 1 and 100. Every guess, I'll tell you "higher" or "lower." How fast can you find it?</p>
+<p>Smart way: guess 50. If I say "higher," guess 75. If "lower," guess 62. Each guess cuts the range in HALF. From 100 numbers, you'll find it in 7 guesses. From 1 million numbers, only about 20 guesses.</p>
+<p>That's binary search. It only works when the data is in order — otherwise "higher" and "lower" don't mean anything.</p>` },
+      { heading: 'How it works in code',
+        body: `<p>You keep two markers: "lowest possible" and "highest possible." Look at the middle. Compare to your target.</p>
+<p>If the middle is too small → throw away everything on the LEFT (the answer must be on the right side).</p>
+<p>If the middle is too big → throw away everything on the RIGHT.</p>
+<p>If the middle is exactly your target → done.</p>
+<p>Repeat. Each step, half the candidates are gone. That's the magic of "log n" — you barely do any work even on huge inputs.</p>` },
+      { heading: 'When to reach for it',
+        body: `<p>The list must be sorted. That's the deal-breaker — if it isn't, sort it first or pick a different approach.</p>
+<p>Beyond classic "find this value in a sorted array," binary search shows up anywhere you can ask a yes/no question that gets monotonically harder. "Can we ship all packages in 5 days?" → no. "What about 10 days?" → yes. The smallest "yes" is your answer, and you binary-search on the day count.</p>` }
+    ],
     examples: [
       { title: 'Classic binary search — find target in sorted array', problemId: null,
         problem: 'Return the index of target in a sorted array, or -1 if not present.',
@@ -1391,6 +1486,19 @@ snippet: `def binary_search(arr, target):
 <p>On a tree {1, [2, [4, 5]], [3, [6, 7]]}: BFS visits 1, 2, 3, 4, 5, 6, 7. DFS pre-order: 1, 2, 4, 5, 3, 6, 7.</p>` },
       { heading: 'When to reach for it', body: `<p><strong>Shortest path</strong> or minimum steps in unweighted graph → <strong>BFS</strong>.<br><strong>Connectivity, cycle detection, all paths</strong> → <strong>DFS</strong>.<br><strong>Topological sort</strong> → either works (Kahn\'s = BFS, post-order = DFS).</p>
 <p>Memory: DFS uses O(depth) stack, BFS uses O(width) queue. On a deep skinny tree, DFS can overflow. On a wide tree, BFS\'s queue can balloon.</p>` }
+    ],
+    lazyDetails: [
+      { heading: '🌊 BFS = ripples in a pond. 🦎 DFS = lizard up a tree.',
+        body: `<p>You drop a pebble in a pond. The ripples spread out evenly: first the closest water moves, then a slightly bigger circle, then bigger. That's <strong>BFS</strong> — Breadth-First Search. You explore everything close to you first, then everything one step further, and so on.</p>
+<p>Now picture a lizard running up a tree. It picks a branch and goes ALL the way to the tip before coming back to try another branch. That's <strong>DFS</strong> — Depth-First Search. You commit to one direction and exhaust it before backtracking.</p>` },
+      { heading: 'When to use which',
+        body: `<p><strong>BFS for shortest path</strong>: if you're asking "what's the fewest steps from A to B?", BFS is your friend. The first time the ripples reach B, you've found the shortest route.</p>
+<p><strong>DFS for "is there ANY path"</strong>: if you're asking "can we reach this node at all?" or "explore every possible path," DFS is shorter to write and uses less memory on tall, skinny trees.</p>
+<p>Mnemonic: <em>BFS for shortest, DFS for everything-else.</em></p>` },
+      { heading: 'How they differ in code',
+        body: `<p>BFS uses a <strong>queue</strong> (first in, first out — like a checkout line). You add neighbors to the back, process from the front. That's why nearby things come first.</p>
+<p>DFS uses <strong>recursion</strong> (the call stack does the work) or an explicit stack (last in, first out — like a pile of plates). You dive deep before coming back.</p>
+<p>The data structure (queue vs stack) is literally what makes the difference. Same exact algorithm template, totally different traversal order.</p>` }
     ],
     examples: [
       { title: 'BFS on a binary tree — level order', problemId: 64,
@@ -1501,6 +1609,20 @@ def dfs(node):                          # pre-order
 <p><strong>Grid path problems</strong> with a "must visit each cell at most once" constraint: Word Search.</p>
 <p><strong>"Find all valid X"</strong> where X is a structure with constraints: parentheses generation, palindrome partitioning.</p>
 <p>If the problem says "all," "every," or has a small input (n ≤ 20), backtracking is a strong default.</p>` }
+    ],
+    lazyDetails: [
+      { heading: '🚶 Going down a path; if blocked, walk back',
+        body: `<p>You're in a maze. You see a fork. You pick left. You walk a few steps and hit a dead end. You walk BACK to the fork and try right. If right also dead-ends, you walk back further and try a different earlier choice.</p>
+<p>That's backtracking: try a path, hit a wall, undo your last move, try a different one. Keep doing this until you find the exit (or prove there is no exit).</p>` },
+      { heading: 'The three steps',
+        body: `<p>Every backtracking solution does the same dance:</p>
+<p>1. <strong>Choose</strong> — make a move (e.g., pick this number for your subset, place a queen on this square).</p>
+<p>2. <strong>Explore</strong> — recurse: now solve the smaller subproblem assuming that choice was made.</p>
+<p>3. <strong>Un-choose</strong> — back out the move so you can try a different one. THIS step is the key. Forget it and your code is wrong.</p>` },
+      { heading: 'When to reach for it',
+        body: `<p>Anytime the problem asks "find ALL valid X" or "is there ANY valid X" where X is built from a series of choices.</p>
+<p>Common ones: all subsets of a list, all permutations, all valid combinations, Sudoku, N-Queens, Word Search on a grid, generating all valid parenthesis arrangements.</p>
+<p>Big warning: backtracking is naturally slow (often O(2ⁿ) or O(n!)). It works for small inputs (n ≤ 20-ish). For bigger inputs, look for a smarter approach (often DP).</p>` }
     ],
     examples: [
       { title: 'Subsets — include or exclude each element', problemId: null,
@@ -1626,6 +1748,20 @@ snippet: `def subsets(nums):
 <p>Recognize the patterns:</p>
 <p>• <strong>1D DP</strong>: dp[i] depends on dp[i−1] or dp[i−2]. Climbing Stairs, House Robber.<br>• <strong>2D DP</strong>: dp[i][j] depends on neighbors. Unique Paths, LCS, Edit Distance.<br>• <strong>Knapsack-style</strong>: dp[i][w] = best with first i items and weight ≤ w.<br>• <strong>State-machine DP</strong>: explicit states like "holding stock" vs "not holding."</p>
 <p>Most 2D DPs only need the previous row → space optimize from O(m·n) to O(n).</p>` }
+    ],
+    lazyDetails: [
+      { heading: '📝 Doing your homework once and reusing it',
+        body: `<p>Your teacher assigns 100 homework problems. You notice that problem #50 secretly requires the answer to problem #20. So does #75. So does #90.</p>
+<p>The lazy way: solve #20 once, write the answer on a sticky note, and just look at the sticky note any time you need it later.</p>
+<p>That's Dynamic Programming. You break a big problem into smaller pieces, solve each piece ONCE, and stash the answer. Whenever the same piece comes up again, you grab the cached answer instead of redoing the work.</p>` },
+      { heading: 'Why it works',
+        body: `<p>Without caching, solving Fibonacci(30) takes about a million function calls — most of them recomputing the same subproblems. With caching, it takes 30 calls. That's the magic: turning exponential brute force into linear time.</p>
+<p>The key word is "<strong>overlapping</strong>" subproblems. If your recursion keeps asking the same smaller question over and over, you should be caching.</p>` },
+      { heading: 'Two ways to write it',
+        body: `<p><strong>Top-down (memoization)</strong>: write the natural recursion, then add a dictionary that remembers answers. First time: compute, store. Next time: just return the stored answer.</p>
+<p><strong>Bottom-up (tabulation)</strong>: skip recursion entirely. Make a table. Fill in the smallest cases first, then use those to fill bigger ones. Eventually you've built up to the answer.</p>
+<p>Both give the same speed. Top-down is easier to write, bottom-up is usually more memory-efficient.</p>
+<p>The HARD part is figuring out what to remember. Once you know "what's the smallest amount of info I need to keep about a subproblem?", the rest is mechanical.</p>` }
     ],
     examples: [
       { title: 'Climbing Stairs — 1D DP, like Fibonacci', problemId: 16,
