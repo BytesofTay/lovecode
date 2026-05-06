@@ -13,6 +13,7 @@ function switchMode(mode) {
   else if (mode === 'sorting') renderSortingMode();
   else if (mode === 'learn') renderLearnMode();
   else if (mode === 'drills') renderDrillsMode();
+  else if (mode === 'build') renderBuildMode();
   else if (mode === 'mock') renderMockMode();
 }
 
@@ -64,6 +65,24 @@ async function init() {
     for (const [qid, qd] of Object.entries(quizData.snippet || {})) {
       const a = qd.attempts || [];
       snippetsAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    parsonsAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.parsons || {})) {
+      const a = qd.attempts || [];
+      parsonsAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    guidedAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.guided || {})) {
+      // Only include problem-level entries (no "__d" decision suffix)
+      if (qid.includes('__d')) continue;
+      const a = qd.attempts || [];
+      guidedAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    templatesAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.template || {})) {
+      if (qid.includes('__b')) continue;
+      const a = qd.attempts || [];
+      templatesAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
     }
     learningState = state.learning || {};
     mockHistory = state.mockHistory || [];

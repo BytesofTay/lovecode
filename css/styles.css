@@ -302,6 +302,28 @@
     .snippet-problem-heading { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 4px 0 8px; }
     .snippet-problem-name { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.15; }
     .snippet-pattern-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; background: rgba(124,106,247,.12); padding: 3px 9px; border-radius: 999px; }
+    /* Build mode — Parsons (line ordering) */
+    .parsons-instruction { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+    .parsons-list { display: flex; flex-direction: column; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+    .parsons-line { display: grid; grid-template-columns: 28px 1fr 56px; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; transition: all .15s; }
+    .parsons-line:hover { border-color: rgba(124,106,247,.5); }
+    .parsons-line.correct { background: rgba(0,184,148,.08); border-color: var(--easy); }
+    .parsons-line.wrong { background: rgba(225,112,85,.06); border-color: rgba(225,112,85,.4); }
+    .parsons-line-num { font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; font-weight: 700; }
+    .parsons-line-code { margin: 0; font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; line-height: 1.4; color: #cfd8dc; background: transparent; padding: 0; white-space: pre; overflow-x: auto; }
+    .parsons-line-actions { display: flex; gap: 4px; justify-content: flex-end; }
+    .parsons-arrow { background: var(--surface2); border: 1px solid var(--border); color: var(--text); width: 24px; height: 24px; border-radius: 4px; cursor: pointer; font-size: 10px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all .12s; }
+    .parsons-arrow:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .parsons-arrow:disabled { opacity: .3; cursor: default; }
+    /* Build mode — Guided (decision stepper) */
+    .guided-stepper { display: flex; gap: 6px; margin: 6px 0 16px; }
+    .guided-step { width: 28px; height: 28px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .guided-step.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .guided-step.done-right { background: rgba(0,184,148,.15); color: var(--easy); border-color: var(--easy); }
+    .guided-step.done-wrong { background: rgba(225,112,85,.15); color: var(--hard); border-color: var(--hard); }
+    .guided-decision-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; margin-top: 4px; }
+    /* Build mode — Templates (current blank highlight) */
+    .snippet-blank.current { background: rgba(124,106,247,.35); color: #fff; border-style: solid; box-shadow: 0 0 0 2px rgba(124,106,247,.4); }
     .snippet-code { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12.5px; line-height: 1.6; color: #cfd8dc; white-space: pre; overflow-x: auto; margin: 0 0 14px; }
     .snippet-blank { display: inline-block; background: rgba(124,106,247,.18); border: 1px dashed var(--accent); border-radius: 4px; padding: 1px 10px; color: var(--accent); font-weight: 600; letter-spacing: 2px; }
     .snippet-filled { display: inline-block; padding: 1px 8px; border-radius: 4px; font-weight: 600; }

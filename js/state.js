@@ -53,6 +53,15 @@ let patternsQueue = [], patternsIdx = 0, patternsSession = {correct:0,total:0}, 
 let vocabQueue = [], vocabIdx = 0, vocabSession = {correct:0,total:0}, vocabAnswered = false, vocabPicked = null, vocabAllTime = {};
 let lazyQueue = [], lazyIdx = 0, lazySession = {correct:0,total:0}, lazyAnswered = false, lazyPicked = null, lazyAllTime = {};
 let snippetsQueue = [], snippetsIdx = 0, snippetsSession = {correct:0,total:0}, snippetsAnswered = false, snippetsPicked = null, snippetsAllTime = {};
+
+// Build mode (Parsons + Guided + Templates)
+let buildSubMode = 'parsons'; // 'parsons' | 'guided' | 'templates'
+let parsonsQueue = [], parsonsIdx = 0, parsonsSession = {correct:0,total:0}, parsonsAllTime = {};
+let parsonsCurrentOrder = null, parsonsCurrentChecked = false, parsonsCurrentResult = null;
+let guidedQueue = [], guidedIdx = 0, guidedSession = {correct:0,total:0}, guidedAllTime = {};
+let guidedDecisionIdx = 0, guidedAnswers = [];
+let templatesQueue = [], templatesIdx = 0, templatesSession = {correct:0,total:0}, templatesAllTime = {};
+let templatesBlankIdx = 0, templatesAnswers = [];
 let lazyFilter = 'all'; // 'all' | one of LAZY_CATEGORIES
 let lazyTimerSecs = 1200;          // 20 minutes
 let lazyTimerInterval = null;
