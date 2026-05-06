@@ -48,6 +48,19 @@ const MOCK_RUBRIC = [
 let mockRubricAnswers = []; // booleans
 
 // Drills
-let drillsSubMode = 'patterns'; // 'patterns' | 'vocab'
+let drillsSubMode = 'patterns'; // 'patterns' | 'vocab' | 'lazy'
 let patternsQueue = [], patternsIdx = 0, patternsSession = {correct:0,total:0}, patternsAnswered = false, patternsPicked = null, patternsAllTime = {};
 let vocabQueue = [], vocabIdx = 0, vocabSession = {correct:0,total:0}, vocabAnswered = false, vocabPicked = null, vocabAllTime = {};
+let lazyQueue = [], lazyIdx = 0, lazySession = {correct:0,total:0}, lazyAnswered = false, lazyPicked = null, lazyAllTime = {};
+let lazyFilter = 'all'; // 'all' | one of LAZY_CATEGORIES
+let lazyTimerSecs = 1200;          // 20 minutes
+let lazyTimerInterval = null;
+let lazyTimerExpired = false;
+const LAZY_CATEGORIES = ['code-complexity','code-pattern','desc-to-term','term-to-desc','quick-concept'];
+const LAZY_CATEGORY_LABELS = {
+  'code-complexity': 'Code → Complexity',
+  'code-pattern': 'Code → Pattern',
+  'desc-to-term': 'Description → Term',
+  'term-to-desc': 'Term → Description',
+  'quick-concept': 'Quick Concept'
+};

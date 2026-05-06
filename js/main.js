@@ -2,6 +2,8 @@
 
 function switchMode(mode) {
   currentMode = mode;
+  // Stop lazy timer when leaving drills mode entirely
+  if (mode !== 'drills' && typeof stopLazyTimer === 'function') stopLazyTimer();
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + mode).classList.add('active');
   const m = document.getElementById('appMain');
@@ -52,6 +54,11 @@ async function init() {
     for (const [qid, qd] of Object.entries(quizData.vocab || {})) {
       const a = qd.attempts || [];
       vocabAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    lazyAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.lazy || {})) {
+      const a = qd.attempts || [];
+      lazyAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
     }
     learningState = state.learning || {};
     mockHistory = state.mockHistory || [];
