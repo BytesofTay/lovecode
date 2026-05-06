@@ -324,6 +324,16 @@
     .guided-decision-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; margin-top: 4px; }
     /* Build mode — Templates (current blank highlight) */
     .snippet-blank.current { background: rgba(124,106,247,.35); color: #fff; border-style: solid; box-shadow: 0 0 0 2px rgba(124,106,247,.4); }
+    /* Build mode — soften "wrong" to orange and pair with the correct piece */
+    .mode-build .btn-mc.wrong, .mode-build .btn-mc.wrong:disabled { background: rgba(240,165,0,.18); border-color: var(--medium); color: var(--medium); }
+    .mode-build .parsons-line.wrong { background: rgba(240,165,0,.08); border-color: rgba(240,165,0,.55); }
+    .mode-build .snippet-filled.wrong { background: rgba(240,165,0,.22); color: var(--medium); border-color: rgba(240,165,0,.55); }
+    .mode-build .quiz-feedback.wrong { background: rgba(240,165,0,.08); color: var(--text); border-color: rgba(240,165,0,.3); }
+    .mode-build .quiz-feedback.wrong code,
+    .mode-build .quiz-feedback.wrong b { color: var(--medium); }
+    .snippet-arrow { display: inline-block; margin: 0 4px; color: var(--medium); font-weight: 700; }
+    .parsons-correct-hint { padding: 4px 12px 8px 44px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .parsons-correct-hint code { background: var(--bg); padding: 2px 6px; border-radius: 3px; font-family: 'SF Mono','Fira Code',monospace; font-size: 11px; color: var(--easy); border: 1px solid rgba(0,184,148,.3); }
     .snippet-code { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12.5px; line-height: 1.6; color: #cfd8dc; white-space: pre; overflow-x: auto; margin: 0 0 14px; }
     .snippet-blank { display: inline-block; background: rgba(124,106,247,.18); border: 1px dashed var(--accent); border-radius: 4px; padding: 1px 10px; color: var(--accent); font-weight: 600; letter-spacing: 2px; }
     .snippet-filled { display: inline-block; padding: 1px 8px; border-radius: 4px; font-weight: 600; }

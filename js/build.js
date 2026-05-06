@@ -172,8 +172,13 @@ function renderParsonsCard() {
   const rows = parsonsCurrentOrder.map((origIdx, displayIdx) => {
     const line = q.lines[origIdx];
     let cls = 'parsons-line';
+    let correctHint = '';
     if (parsonsCurrentChecked) {
-      cls += origIdx === displayIdx ? ' correct' : ' wrong';
+      if (origIdx === displayIdx) cls += ' correct';
+      else {
+        cls += ' wrong';
+        correctHint = `<div class="parsons-correct-hint">Should be: <code>${escape(q.lines[displayIdx])}</code></div>`;
+      }
     }
     const upDisabled = displayIdx === 0 || parsonsCurrentChecked;
     const downDisabled = displayIdx === parsonsCurrentOrder.length - 1 || parsonsCurrentChecked;
@@ -184,7 +189,7 @@ function renderParsonsCard() {
         <button class="parsons-arrow" ${upDisabled?'disabled':''} onclick="moveParsonsLine(${displayIdx}, ${displayIdx-1})" title="Move up">▲</button>
         <button class="parsons-arrow" ${downDisabled?'disabled':''} onclick="moveParsonsLine(${displayIdx}, ${displayIdx+1})" title="Move down">▼</button>
       </div>
-    </div>`;
+    </div>${correctHint}`;
   }).join('');
   let feedback = '';
   if (parsonsCurrentChecked) {
@@ -407,9 +412,13 @@ function renderTemplatesCard() {
     const isCurrent = (i - 1) === templatesBlankIdx && !allDone;
     let replacement;
     if (ans) {
-      const opt = q.blanks[i - 1].options[ans.picked];
-      const cls = ans.correct ? 'snippet-filled right' : 'snippet-filled wrong';
-      replacement = `<span class="${cls}">${escape(opt)}</span>`;
+      const userOpt = q.blanks[i - 1].options[ans.picked];
+      if (ans.correct) {
+        replacement = `<span class="snippet-filled right">${escape(userOpt)}</span>`;
+      } else {
+        const correctOpt = q.blanks[i - 1].options[q.blanks[i - 1].answerIdx];
+        replacement = `<span class="snippet-filled wrong">${escape(userOpt)}</span><span class="snippet-arrow">→</span><span class="snippet-filled right">${escape(correctOpt)}</span>`;
+      }
     } else if (isCurrent) {
       replacement = `<span class="snippet-blank current">▢ blank ${i} ▢</span>`;
     } else {
