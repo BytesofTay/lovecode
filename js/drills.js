@@ -375,28 +375,46 @@ const PATTERN_WHY = {
   'Kadane\'s Algorithm (Maximum Subarray)': 'Fits "maximum sum contiguous subarray" — track running sum, reset on negative.'
 };
 
-// Builds a detailed wrong-answer explanation: why the user's pick doesn't fit + a deeper reason for the correct answer.
-function buildWrongFeedback(card, pickedIdx) {
+// Returns a "what this option means + example" rationale for any option.
+function getOptionRationale(card, optIdx) {
   const cat = card.category;
-  const pickedOpt = card.options[pickedIdx];
-  const correctOpt = card.options[card.answerIdx];
-  let whyWrong = '';
+  const opt = card.options[optIdx];
   if (cat === 'code-complexity' || cat === 'quick-concept') {
-    if (COMPLEXITY_WHY[pickedOpt]) {
-      whyWrong = `<strong>${pickedOpt}</strong> means: ${COMPLEXITY_WHY[pickedOpt]}`;
-    }
-  } else if (cat === 'code-pattern') {
-    if (PATTERN_WHY[pickedOpt]) {
-      whyWrong = `<strong>${pickedOpt}</strong> would fit when: ${PATTERN_WHY[pickedOpt]} — but that\'s not what this code is doing.`;
-    }
-  } else if (cat === 'desc-to-term') {
-    const otherCard = LAZY_FLASHCARDS.find(c => c.format === 'flash' && c.category === 'desc-to-term' && c.back === pickedOpt);
-    if (otherCard) whyWrong = `<strong>${pickedOpt}</strong> means: ${otherCard.front}`;
-  } else if (cat === 'term-to-desc') {
-    const otherCard = LAZY_FLASHCARDS.find(c => c.format === 'flash' && c.category === 'term-to-desc' && c.back === pickedOpt);
-    if (otherCard) whyWrong = `That description belongs to: <strong>${otherCard.front.replace(/<[^>]+>/g,'')}</strong>.`;
+    return COMPLEXITY_WHY[opt] || '';
   }
-  return whyWrong;
+  if (cat === 'code-pattern') {
+    return PATTERN_WHY[opt] || '';
+  }
+  if (cat === 'desc-to-term') {
+    const otherCard = LAZY_FLASHCARDS.find(c => c.format === 'flash' && c.category === 'desc-to-term' && c.back === opt);
+    return otherCard ? otherCard.front : '';
+  }
+  if (cat === 'term-to-desc') {
+    const otherCard = LAZY_FLASHCARDS.find(c => c.format === 'flash' && c.category === 'term-to-desc' && c.back === opt);
+    if (otherCard) return `Belongs to: <strong>${otherCard.front.replace(/<[^>]+>/g,'')}</strong>`;
+    return '';
+  }
+  return '';
+}
+
+// Builds the full per-option breakdown: each option labeled correct/wrong with its rationale and example.
+function buildOptionBreakdown(card) {
+  const rows = card.options.map((opt, i) => {
+    const isCorrect = i === card.answerIdx;
+    const rationale = getOptionRationale(card, i);
+    if (!rationale) return '';
+    const cls = isCorrect ? 'opt-row correct' : 'opt-row wrong';
+    const marker = isCorrect ? '✓' : '✗';
+    return `<div class="${cls}">
+      <div class="opt-row-header"><span class="opt-marker">${marker}</span><span class="opt-text">${opt}</span></div>
+      <div class="opt-rationale">${rationale}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+  if (!rows) return '';
+  return `<div class="option-breakdown">
+    <div class="option-breakdown-label">What each option means</div>
+    ${rows}
+  </div>`;
 }
 
 function pickDistractors(correct, pool, n = 2) {
@@ -525,20 +543,11 @@ function renderLazyCard() {
   if (lazyAnswered) {
     const right = lazyPicked === q.answerIdx;
     const correctAns = q.options[q.answerIdx];
-    let wrongBlock = '';
-    if (!right) {
-      const whyWrong = buildWrongFeedback(q, lazyPicked);
-      const correctWhy =
-        (q.category === 'code-complexity' || q.category === 'quick-concept') ? (COMPLEXITY_WHY[correctAns] || '') :
-        (q.category === 'code-pattern') ? (PATTERN_WHY[correctAns] || '') : '';
-      wrongBlock = `${whyWrong ? `<div class="wrong-reason">${whyWrong}</div>` : ''}
-      ${correctWhy ? `<div class="correct-deeper"><strong>${correctAns}</strong> is the right answer because: ${correctWhy}</div>` : ''}`;
-    }
     feedback = `<div class="quiz-feedback ${right?'right':'wrong'}">
       ${right ? '✓ Correct.' : `✗ The answer is: <b>${correctAns}</b>`}
       ${q.explanation ? `<div class="exp">${q.explanation}</div>` : ''}
     </div>
-    ${wrongBlock}
+    ${buildOptionBreakdown(q)}
     <div class="quiz-actions">
       <button class="btn btn-primary" onclick="nextLazyQuestion()">${lazyIdx === lazyQueue.length - 1 ? 'See Results' : 'Next →'}</button>
     </div>`;

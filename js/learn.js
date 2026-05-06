@@ -205,23 +205,88 @@ const typingInputs = {};   // key 'topicId-exIdx' → string (user's typed code)
 const typingRefShown = {}; // key 'topicId-exIdx' → bool
 
 function lineAnnotationsHtml(topicId, exIdx, code) {
-  const annotations = (EXAMPLE_ANNOTATIONS[`${topicId}-${exIdx}`] || []);
+  const key = `${topicId}-${exIdx}`;
+  const annotations = (EXAMPLE_ANNOTATIONS[key] || []);
+  const quizzes = (typeof EXAMPLE_LINE_QUIZZES !== 'undefined' && EXAMPLE_LINE_QUIZZES[key]) || {};
   const lines = code.split('\n');
   const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const totalQuizzes = Object.keys(quizzes).length;
+  let passed = 0;
+  Object.keys(quizzes).forEach(li => {
+    const st = lineQuizState[`${key}-${li}`];
+    if (st && st.correct) passed++;
+  });
   const rows = lines.map((line, i) => {
     const ann = annotations[i];
+    const quiz = quizzes[i];
+    let explainBlock;
+    if (quiz) {
+      const quizKey = `${key}-${i}`;
+      const st = lineQuizState[quizKey];
+      const revealed = st && (st.correct || st.revealed);
+      if (revealed) {
+        const passTag = st.correct
+          ? '<span class="lq-passed">✓ quiz passed</span>'
+          : '<span class="lq-revealed">👁 revealed</span>';
+        explainBlock = `<div class="line-explain">${passTag}${ann || '(no annotation)'}</div>`;
+      } else {
+        const buttons = quiz.options.map((opt, oi) => {
+          let cls = 'btn-lq';
+          if (st && st.picked === oi) cls += ' wrong';
+          return `<button class="${cls}" ${st?'disabled':''} onclick="pickLineQuiz('${topicId}', ${exIdx}, ${i}, ${oi})">${opt}</button>`;
+        }).join('');
+        const fb = (st && !st.correct)
+          ? `<div class="lq-feedback wrong">✗ Not quite. ${quiz.explanation}<div class="lq-actions"><button class="btn-lq-retry" onclick="resetLineQuiz('${topicId}', ${exIdx}, ${i})">↻ Try again</button><button class="btn-lq-reveal" onclick="revealLineQuiz('${topicId}', ${exIdx}, ${i})">Show answer →</button></div></div>`
+          : '';
+        explainBlock = `<div class="line-quiz">
+          <div class="lq-label">🔒 Quick check before reveal</div>
+          <div class="lq-q">${quiz.q}</div>
+          <div class="lq-options">${buttons}</div>
+          ${fb}
+        </div>`;
+      }
+    } else {
+      explainBlock = `<div class="line-explain ${ann?'':'empty'}">${ann || '(no annotation for this line yet)'}</div>`;
+    }
     return `<div class="line-row">
       <div class="line-num">${i + 1}</div>
       <div class="line-content">
         <div class="line-code">${escape(line) || '&nbsp;'}</div>
-        <div class="line-explain ${ann?'':'empty'}">${ann || '(no annotation for this line yet)'}</div>
+        ${explainBlock}
       </div>
     </div>`;
   }).join('');
+  const headerRight = totalQuizzes
+    ? `<span class="lq-progress">${passed}/${totalQuizzes} checks passed</span>`
+    : '';
   return `<div class="line-annotations">
-    <h5>💡 Line-by-line walkthrough</h5>
+    <h5>💡 Line-by-line walkthrough ${headerRight}</h5>
     ${rows}
   </div>`;
+}
+
+const lineQuizState = {}; // 'topicId-exIdx-lineIdx' → { picked, correct, revealed? }
+
+function pickLineQuiz(topicId, exIdx, lineIdx, optIdx) {
+  const key = `${topicId}-${exIdx}`;
+  const quiz = (EXAMPLE_LINE_QUIZZES[key] || {})[lineIdx];
+  if (!quiz) return;
+  const stateKey = `${key}-${lineIdx}`;
+  if (lineQuizState[stateKey] && lineQuizState[stateKey].correct) return;
+  const correct = optIdx === quiz.answerIdx;
+  lineQuizState[stateKey] = { picked: optIdx, correct };
+  rerenderExampleExtras(topicId, exIdx);
+}
+
+function resetLineQuiz(topicId, exIdx, lineIdx) {
+  delete lineQuizState[`${topicId}-${exIdx}-${lineIdx}`];
+  rerenderExampleExtras(topicId, exIdx);
+}
+
+function revealLineQuiz(topicId, exIdx, lineIdx) {
+  const key = `${topicId}-${exIdx}-${lineIdx}`;
+  lineQuizState[key] = Object.assign({}, lineQuizState[key] || {}, { revealed: true });
+  rerenderExampleExtras(topicId, exIdx);
 }
 
 function typingSectionHtml(topicId, exIdx, code) {
@@ -243,20 +308,80 @@ function typingSectionHtml(topicId, exIdx, code) {
     }
   }
   const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const tests = (typeof EXAMPLE_TESTS !== 'undefined') ? EXAMPLE_TESTS[key] : null;
+  const hasTests = tests && tests.cases && tests.cases.length;
+  const runResults = typingRunResults[key];
+  let runResultsBlock = '';
+  if (runResults) {
+    if (runResults.loading) {
+      runResultsBlock = `<div class="run-status loading">⏳ ${runResults.loading}</div>`;
+    } else if (runResults.error) {
+      runResultsBlock = `<div class="run-status error">⚠ ${escape(runResults.error)}</div>`;
+    } else if (runResults.results && runResults.results.length) {
+      const pass = runResults.results.filter(r => r.passed).length;
+      const total = runResults.results.length;
+      const allPass = pass === total;
+      const rows = runResults.results.map((r, i) => {
+        const status = r.passed ? '<span class="rr-pass">✓</span>' : '<span class="rr-fail">✗</span>';
+        const inputStr = JSON.stringify(r.input);
+        const expectedStr = JSON.stringify(r.expected);
+        const actualStr = r.error ? `<span class="rr-error">${escape(r.error)}</span>` : escape(JSON.stringify(r.actual));
+        return `<div class="rr-row ${r.passed?'pass':'fail'}">
+          <div class="rr-line">${status} <strong>Test ${i+1}</strong> · input: <code>${escape(inputStr)}</code></div>
+          ${!r.passed ? `<div class="rr-detail">expected: <code>${escape(expectedStr)}</code> · got: ${actualStr}</div>` : ''}
+        </div>`;
+      }).join('');
+      runResultsBlock = `<div class="run-status ${allPass?'all-pass':'some-fail'}">
+        <div class="rr-summary">${allPass ? '✓ All' : `${pass} of ${total}`} tests passed</div>
+        ${rows}
+      </div>`;
+    }
+  }
   return `<div class="typing-section" id="ts-${topicId}-${exIdx}">
     <h5>⌨️ Type it yourself</h5>
-    <div class="typing-prompt">Implement this from scratch in the box below. Don't peek at the reference until you've tried.</div>
+    <div class="typing-prompt">Implement this from scratch in the box below. Don't peek at the reference until you've tried.${hasTests ? ` This example has <strong>${tests.cases.length} test cases</strong> — click <em>Run Tests</em> to verify your solution.` : ''}</div>
     <textarea class="typing-textarea" placeholder="def my_solution(...):\n    ..." oninput="updateTyping('${topicId}', ${exIdx}, this.value)">${escape(typed)}</textarea>
     ${diffSummary}
     <div class="typing-actions">
+      ${hasTests ? `<button class="btn btn-run-tests" onclick="runTypingTests('${topicId}', ${exIdx})">▶ Run Tests</button>` : ''}
       <button class="btn btn-ghost" onclick="toggleTypingReference('${topicId}', ${exIdx})">${refShown ? '🙈 Hide reference' : '👁 Show reference'}</button>
       <button class="btn btn-ghost" onclick="clearTyping('${topicId}', ${exIdx})">↺ Clear</button>
     </div>
+    ${runResultsBlock}
     ${refShown ? `<div class="typing-reference-block">
       <div class="ref-label">Reference solution</div>
       <pre>${escape(code)}</pre>
     </div>` : ''}
   </div>`;
+}
+
+const typingRunResults = {}; // key -> { loading?: string, results?: [...], error?: string }
+
+async function runTypingTests(topicId, exIdx) {
+  const key = `${topicId}-${exIdx}`;
+  const code = typingInputs[key] || '';
+  const tests = EXAMPLE_TESTS && EXAMPLE_TESTS[key];
+  if (!tests || !code.trim()) {
+    typingRunResults[key] = { error: 'Type some code first.' };
+    rerenderExampleExtras(topicId, exIdx);
+    return;
+  }
+  typingRunResults[key] = { loading: 'Loading Python runtime…' };
+  rerenderExampleExtras(topicId, exIdx);
+  // Re-render once more after a tick to update progress messages from ensurePyodide
+  const onProgress = (msg) => {
+    typingRunResults[key] = { loading: msg };
+    rerenderExampleExtras(topicId, exIdx);
+  };
+  try {
+    await ensurePyodide(onProgress);
+    onProgress('Running your code against test cases…');
+    const out = await runUserCode(code, tests.funcName, tests.cases, tests.compare);
+    typingRunResults[key] = out;
+  } catch (e) {
+    typingRunResults[key] = { error: 'Pyodide failed: ' + (e.message || String(e)) };
+  }
+  rerenderExampleExtras(topicId, exIdx);
 }
 
 function toggleLineWalk(topicId, exIdx) {
