@@ -60,6 +60,11 @@ async function init() {
       const a = qd.attempts || [];
       lazyAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
     }
+    snippetsAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.snippet || {})) {
+      const a = qd.attempts || [];
+      snippetsAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
     learningState = state.learning || {};
     mockHistory = state.mockHistory || [];
   } catch (e) {

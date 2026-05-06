@@ -3,6 +3,82 @@ function renderLearnMode() {
   else renderTopicMap();
 }
 
+function computeWeakSpots() {
+  const out = [];
+  const aggregate = (entries, getLabel, action) => {
+    const rows = [];
+    Object.entries(entries).forEach(([k, s]) => {
+      if (!s || s.total < 3) return;
+      rows.push({ key: k, total: s.total, correct: s.correct, pct: s.correct/s.total, label: getLabel(k) });
+    });
+    return rows.sort((a, b) => a.pct - b.pct).slice(0, 1).map(r => ({ ...r, action }));
+  };
+  // Big-O — weakest complexity class
+  out.push(...aggregate(bigoAllTime, k => `Big-O · ${k}`, "switchMode('bigo'); startBigoSession();"));
+  // Sorting — weakest algo
+  out.push(...aggregate(sortingAllTime, k => `Sorting · ${k}`, "switchMode('sorting');"));
+  // Patterns — weakest pattern question
+  const patternLabels = {};
+  if (typeof PATTERN_QUESTIONS !== 'undefined') {
+    PATTERN_QUESTIONS.forEach(q => { patternLabels[q.id] = q.options[q.answerIdx]; });
+  }
+  out.push(...aggregate(patternsAllTime, k => `Pattern · ${patternLabels[k] || k}`, "switchMode('drills'); setDrillsSubMode('patterns');"));
+  // Vocab — weakest term
+  out.push(...aggregate(vocabAllTime, k => `Vocab · ${k.replace(/^v_/,'').replace(/_/g,' ')}`, "switchMode('drills'); setDrillsSubMode('vocab');"));
+  // Lazy — weakest CATEGORY (aggregate)
+  if (typeof LAZY_FLASHCARDS !== 'undefined' && typeof LAZY_CATEGORIES !== 'undefined') {
+    const byCat = {};
+    LAZY_CATEGORIES.forEach(c => byCat[c] = { correct: 0, total: 0 });
+    LAZY_FLASHCARDS.forEach(card => {
+      const s = lazyAllTime[card.id];
+      if (!s) return;
+      byCat[card.category].correct += s.correct;
+      byCat[card.category].total += s.total;
+    });
+    out.push(...aggregate(byCat, k => `Lazy · ${LAZY_CATEGORY_LABELS[k] || k}`, `switchMode('drills'); setDrillsSubMode('lazy');`));
+  }
+  // Snippets — weakest pattern (aggregate)
+  if (typeof SNIPPET_CHALLENGES !== 'undefined') {
+    const byPattern = {};
+    SNIPPET_CHALLENGES.forEach(c => {
+      const s = snippetsAllTime[c.id];
+      if (!s) return;
+      byPattern[c.pattern] = byPattern[c.pattern] || { correct: 0, total: 0 };
+      byPattern[c.pattern].correct += s.correct;
+      byPattern[c.pattern].total += s.total;
+    });
+    out.push(...aggregate(byPattern, k => `Snippet · ${k}`, "switchMode('drills'); setDrillsSubMode('snippets');"));
+  }
+  return out.sort((a, b) => a.pct - b.pct).slice(0, 4);
+}
+
+function weakSpotsHtml() {
+  const spots = computeWeakSpots();
+  if (!spots.length) return '';
+  const rows = spots.map(s => {
+    const pctNum = Math.round(s.pct * 100);
+    const cls = pctNum >= 80 ? 'high' : pctNum >= 50 ? 'mid' : 'low';
+    return `<button class="weakspot-row" onclick="${s.action.replace(/"/g,'&quot;')}">
+      <div class="ws-label">${s.label}</div>
+      <div class="ws-stats">
+        <span class="ws-bar"><span class="ws-fill ${cls}" style="width:${pctNum}%"></span></span>
+        <span class="ws-pct ${cls}">${pctNum}%</span>
+        <span class="ws-count">${s.correct}/${s.total}</span>
+        <span class="ws-go">→</span>
+      </div>
+    </button>`;
+  }).join('');
+  return `<div class="weakspots-card">
+    <div class="weakspots-header">
+      <div>
+        <div class="ws-title">🎯 Your weakest spots</div>
+        <div class="ws-sub">Computed from your quiz history. Click any row to drill it.</div>
+      </div>
+    </div>
+    <div class="weakspots-grid">${rows}</div>
+  </div>`;
+}
+
 function renderTopicMap() {
   learnView = 'map';
   const sections = ['Foundations', 'Data Structures', 'Patterns'];
@@ -50,6 +126,7 @@ function renderTopicMap() {
         <h2>Learn the concepts first</h2>
         <p>Visual intros, short videos, and key takeaways. When you're ready, jump into practice.</p>
       </div>
+      ${weakSpotsHtml()}
       ${sectionsHtml}
       ${advancedHtml}
     </div>`;

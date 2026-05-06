@@ -44,6 +44,7 @@ function renderDrillsMode() {
   if (drillsSubMode === 'patterns' && !patternsQueue.length) startPatternsSession();
   else if (drillsSubMode === 'vocab' && !vocabQueue.length) startVocabSession();
   else if (drillsSubMode === 'lazy' && !lazyQueue.length) startLazySession();
+  else if (drillsSubMode === 'snippets' && !snippetsQueue.length) startSnippetsSession();
   else { renderDrillsSidebar(); renderDrillsContent(); }
 }
 
@@ -54,6 +55,7 @@ function setDrillsSubMode(m) {
   if (m === 'patterns' && !patternsQueue.length) startPatternsSession();
   else if (m === 'vocab' && !vocabQueue.length) startVocabSession();
   else if (m === 'lazy' && !lazyQueue.length) startLazySession();
+  else if (m === 'snippets' && !snippetsQueue.length) startSnippetsSession();
   else { renderDrillsSidebar(); renderDrillsContent(); }
 }
 
@@ -61,6 +63,7 @@ function renderDrillsContent() {
   if (drillsSubMode === 'patterns') renderPatternsCard();
   else if (drillsSubMode === 'vocab') renderVocabCard();
   else if (drillsSubMode === 'lazy') renderLazyCard();
+  else if (drillsSubMode === 'snippets') renderSnippetsCard();
 }
 
 function renderDrillsSidebar() {
@@ -94,6 +97,26 @@ function renderDrillsSidebar() {
       const label = item.term;
       const truncated = label.length > 26 ? label.slice(0,24)+'…' : label;
       return `<div class="stat-row"><span title="${label.replace(/"/g,'&quot;')}">${truncated}</span><span class="acc ${cls}">${pct}%</span></div>`;
+    }).join('');
+  } else if (mode === 'snippets') {
+    session = snippetsSession; queue = snippetsQueue; idx = snippetsIdx; allTime = snippetsAllTime;
+    totalCount = SNIPPET_CHALLENGES.length;
+    startFn = 'startSnippetsSession()';
+    // Aggregate by pattern for the snippets breakdown
+    const byPattern = {};
+    SNIPPET_CHALLENGES.forEach(c => {
+      const s = allTime[c.id];
+      if (!s) return;
+      byPattern[c.pattern] = byPattern[c.pattern] || { correct: 0, total: 0 };
+      byPattern[c.pattern].correct += s.correct;
+      byPattern[c.pattern].total += s.total;
+    });
+    breakdownRows = Object.keys(byPattern).sort().map(p => {
+      const s = byPattern[p];
+      const pct = Math.round(s.correct/s.total*100);
+      const cls = pct >= 80 ? 'high' : pct >= 50 ? 'mid' : 'low';
+      const label = p.length > 26 ? p.slice(0,24)+'…' : p;
+      return `<div class="stat-row"><span title="${p.replace(/"/g,'&quot;')}">${label}</span><span class="acc ${cls}">${pct}% (${s.correct}/${s.total})</span></div>`;
     }).join('');
   } else { // lazy
     session = lazySession; queue = lazyQueue; idx = lazyIdx; allTime = lazyAllTime;
@@ -134,9 +157,10 @@ function renderDrillsSidebar() {
     </div>`;
   }
   sb.innerHTML = `
-    <div class="submode-toggle three-tab">
+    <div class="submode-toggle four-tab">
       <button class="submode-btn ${mode==='patterns'?'active':''}" onclick="setDrillsSubMode('patterns')">🧠 Patterns</button>
       <button class="submode-btn ${mode==='vocab'?'active':''}" onclick="setDrillsSubMode('vocab')">📖 Vocab</button>
+      <button class="submode-btn ${mode==='snippets'?'active':''}" onclick="setDrillsSubMode('snippets')">🧩 Snippets</button>
       <button class="submode-btn ${mode==='lazy'?'active':''}" onclick="setDrillsSubMode('lazy')">😎 Lazy</button>
     </div>
     ${lazyFilterChips}
@@ -612,3 +636,107 @@ function renderLazySummary() {
     </div>`;
 }
 
+
+// ── Snippets session (fill-in-the-blank) ──────────────────────────────────
+function startSnippetsSession() {
+  snippetsQueue = shuffleCopy(SNIPPET_CHALLENGES).slice(0, SNIPPETS_PER_SESSION);
+  snippetsIdx = 0;
+  snippetsSession = { correct: 0, total: 0 };
+  snippetsAnswered = false;
+  snippetsPicked = null;
+  drillsSubMode = 'snippets';
+  renderDrillsSidebar();
+  renderDrillsContent();
+}
+
+function renderSnippetsCard() {
+  const panel = document.getElementById('drillsPanel');
+  if (!panel) return;
+  if (snippetsIdx >= snippetsQueue.length) { renderSnippetsSummary(); return; }
+  const q = snippetsQueue[snippetsIdx];
+  const stats = snippetsAllTime[q.id];
+  const allTimeStr = stats && stats.total ? ` · seen ${stats.total}× · ${Math.round(stats.correct/stats.total*100)}% correct` : '';
+  const progressPct = (snippetsIdx / snippetsQueue.length) * 100;
+  const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Render code with the {{1}} blank highlighted
+  const parts = q.code.split('{{1}}');
+  const blankToken = snippetsAnswered
+    ? `<span class="snippet-filled ${snippetsPicked === q.answerIdx ? 'right' : 'wrong'}">${escape(q.options[snippetsPicked])}</span>`
+    : `<span class="snippet-blank">▢▢▢▢▢</span>`;
+  const codeHtml = `<pre class="snippet-code">${escape(parts[0] || '')}${blankToken}${escape(parts[1] || '')}</pre>`;
+  const buttons = q.options.map((opt, i) => {
+    let cls = 'btn-mc snippet-opt';
+    if (snippetsAnswered) {
+      if (i === q.answerIdx) cls += ' correct';
+      else if (i === snippetsPicked) cls += ' wrong';
+    }
+    return `<button class="${cls}" ${snippetsAnswered?'disabled':''} onclick="pickSnippetAnswer(${i})"><code>${escape(opt)}</code></button>`;
+  }).join('');
+  let feedback = '';
+  if (snippetsAnswered) {
+    const right = snippetsPicked === q.answerIdx;
+    feedback = `<div class="quiz-feedback ${right?'right':'wrong'}">
+      ${right ? '✓ Correct.' : `✗ The correct fill is: <code>${escape(q.options[q.answerIdx])}</code>`}
+      <div class="exp">${q.explanation}</div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn btn-primary" onclick="nextSnippetQuestion()">${snippetsIdx === snippetsQueue.length - 1 ? 'See Results' : 'Next →'}</button>
+    </div>`;
+  }
+  const levelPill = q.level ? `<span class="level-pill ${q.level}">${q.level}</span>` : '';
+  panel.innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-bar">
+        <span>Snippet ${snippetsIdx + 1} of ${snippetsQueue.length} · ${q.pattern}${allTimeStr}</span>
+        ${levelPill}
+      </div>
+      <div class="quiz-progressbar"><div style="width:${progressPct}%"></div></div>
+      <div class="snippet-problem-label">${q.problem}</div>
+      <div class="example-problem" style="margin-bottom:14px">${q.brief}</div>
+      ${codeHtml}
+      <div class="snippet-prompt">Pick the correct fill for the blank:</div>
+      <div class="snippet-options">${buttons}</div>
+      ${feedback}
+    </div>`;
+}
+
+function pickSnippetAnswer(idx) {
+  if (snippetsAnswered) return;
+  snippetsAnswered = true;
+  snippetsPicked = idx;
+  const q = snippetsQueue[snippetsIdx];
+  const correct = idx === q.answerIdx;
+  snippetsSession.total++;
+  if (correct) snippetsSession.correct++;
+  else {
+    const reIdx = Math.min(snippetsIdx + 3, snippetsQueue.length);
+    snippetsQueue.splice(reIdx, 0, q);
+  }
+  snippetsAllTime[q.id] = snippetsAllTime[q.id] || { correct: 0, total: 0 };
+  snippetsAllTime[q.id].total++;
+  if (correct) snippetsAllTime[q.id].correct++;
+  api('/api/log-quiz', { quizType: 'snippet', questionId: q.id, correct });
+  renderSnippetsCard();
+  renderDrillsSidebar();
+}
+
+function nextSnippetQuestion() {
+  snippetsIdx++;
+  snippetsAnswered = false;
+  snippetsPicked = null;
+  renderSnippetsCard();
+  renderDrillsSidebar();
+}
+
+function renderSnippetsSummary() {
+  const panel = document.getElementById('drillsPanel');
+  if (!panel) return;
+  const pct = snippetsSession.total ? Math.round(snippetsSession.correct/snippetsSession.total*100) : 0;
+  panel.innerHTML = `
+    <div class="quiz-card quiz-summary">
+      <div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Snippet Session Complete</div>
+      <div class="big-num">${snippetsSession.correct}/${snippetsSession.total}</div>
+      <div class="sub">${pct}% accuracy</div>
+      <button class="btn btn-primary" onclick="startSnippetsSession()">↻ New Session</button>
+    </div>`;
+}
