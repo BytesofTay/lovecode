@@ -62,6 +62,15 @@ let guidedQueue = [], guidedIdx = 0, guidedSession = {correct:0,total:0}, guided
 let guidedDecisionIdx = 0, guidedAnswers = [];
 let templatesQueue = [], templatesIdx = 0, templatesSession = {correct:0,total:0}, templatesAllTime = {};
 let templatesBlankIdx = 0, templatesAnswers = [];
+
+// Recall mode (Flashcards + Inverse + Why)
+let recallSubMode = 'flashcards'; // 'flashcards' | 'inverse' | 'why'
+let flashcardsQueue = [], flashcardsIdx = 0, flashcardsSession = {correct:0,total:0}, flashcardsAllTime = {};
+let flashcardsRevealed = false;
+let inverseQueue = [], inverseIdx = 0, inverseSession = {correct:0,total:0}, inverseAllTime = {};
+let inverseAnswered = false, inversePicked = null;
+let whyQueue = [], whyIdx = 0, whySession = {correct:0,total:0}, whyAllTime = {};
+let whyRevealed = false;
 let lazyFilter = 'all'; // 'all' | one of LAZY_CATEGORIES
 let lazyTimerSecs = 1200;          // 20 minutes
 let lazyTimerInterval = null;

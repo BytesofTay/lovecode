@@ -14,6 +14,7 @@ function switchMode(mode) {
   else if (mode === 'learn') renderLearnMode();
   else if (mode === 'drills') renderDrillsMode();
   else if (mode === 'build') renderBuildMode();
+  else if (mode === 'recall') renderRecallMode();
   else if (mode === 'mock') renderMockMode();
 }
 
@@ -83,6 +84,21 @@ async function init() {
       if (qid.includes('__b')) continue;
       const a = qd.attempts || [];
       templatesAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    flashcardsAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.flashcard || {})) {
+      const a = qd.attempts || [];
+      flashcardsAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    inverseAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.inverse || {})) {
+      const a = qd.attempts || [];
+      inverseAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
+    }
+    whyAllTime = {};
+    for (const [qid, qd] of Object.entries(quizData.why || {})) {
+      const a = qd.attempts || [];
+      whyAllTime[qid] = { total: a.length, correct: a.filter(x => x.correct).length };
     }
     learningState = state.learning || {};
     mockHistory = state.mockHistory || [];

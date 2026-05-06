@@ -182,7 +182,16 @@ function renderParsonsCard() {
     }
     const upDisabled = displayIdx === 0 || parsonsCurrentChecked;
     const downDisabled = displayIdx === parsonsCurrentOrder.length - 1 || parsonsCurrentChecked;
-    return `<div class="${cls}">
+    const draggable = parsonsCurrentChecked ? '' : 'draggable="true"';
+    return `<div class="${cls}" ${draggable}
+        data-idx="${displayIdx}"
+        ondragstart="parsonsDragStart(event, ${displayIdx})"
+        ondragover="parsonsDragOver(event)"
+        ondragenter="parsonsDragEnter(event)"
+        ondragleave="parsonsDragLeave(event)"
+        ondrop="parsonsDrop(event, ${displayIdx})"
+        ondragend="parsonsDragEnd(event)">
+      <div class="parsons-grip" title="Drag to reorder">⋮⋮</div>
       <div class="parsons-line-num">${displayIdx + 1}</div>
       <pre class="parsons-line-code">${escape(line)}</pre>
       <div class="parsons-line-actions">
@@ -217,8 +226,8 @@ function renderParsonsCard() {
         <div class="snippet-pattern-tag">${q.pattern}</div>
       </div>
       <div class="example-problem" style="margin-bottom:12px">${q.brief}</div>
-      <div class="parsons-instruction">Drag-style reorder using ▲ / ▼ until the lines form a working solution, then click <strong>Check</strong>.</div>
-      <div class="parsons-list">${rows}</div>
+      <div class="parsons-instruction">🖱️ <strong>Drag</strong> a line by its grip handle (⋮⋮) to reorder, or use ▲/▼. Click <strong>Check</strong> when done.</div>
+      <div class="parsons-list" id="parsonsList">${rows}</div>
       <div class="quiz-actions" style="margin-top:14px">
         ${parsonsCurrentChecked
           ? `<button class="btn btn-primary" onclick="nextParsons()">${parsonsIdx === parsonsQueue.length - 1 ? 'See Results' : 'Next →'}</button>`
@@ -529,4 +538,45 @@ function renderTemplatesSummary() {
       <div class="sub">${pct}% accuracy</div>
       <button class="btn btn-primary" onclick="startTemplatesSession()">↻ New Session</button>
     </div>`;
+}
+
+// ── Parsons drag-and-drop handlers ────────────────────────────────────────
+let parsonsDragFrom = null;
+
+function parsonsDragStart(e, idx) {
+  if (parsonsCurrentChecked) { e.preventDefault(); return; }
+  parsonsDragFrom = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(idx)); } catch (_) {}
+  e.currentTarget.classList.add('dragging');
+}
+
+function parsonsDragOver(e) {
+  if (parsonsCurrentChecked) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function parsonsDragEnter(e) {
+  if (parsonsCurrentChecked) return;
+  e.currentTarget.classList.add('drag-over');
+}
+
+function parsonsDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function parsonsDrop(e, idx) {
+  if (parsonsCurrentChecked) return;
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (parsonsDragFrom == null || parsonsDragFrom === idx) return;
+  moveParsonsLine(parsonsDragFrom, idx);
+  parsonsDragFrom = null;
+}
+
+function parsonsDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.parsons-line.drag-over').forEach(el => el.classList.remove('drag-over'));
+  parsonsDragFrom = null;
 }
