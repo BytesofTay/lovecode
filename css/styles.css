@@ -299,6 +299,9 @@
     }
     /* Snippet game styles */
     .snippet-problem-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+    .snippet-problem-heading { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 4px 0 8px; }
+    .snippet-problem-name { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.15; }
+    .snippet-pattern-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; background: rgba(124,106,247,.12); padding: 3px 9px; border-radius: 999px; }
     .snippet-code { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12.5px; line-height: 1.6; color: #cfd8dc; white-space: pre; overflow-x: auto; margin: 0 0 14px; }
     .snippet-blank { display: inline-block; background: rgba(124,106,247,.18); border: 1px dashed var(--accent); border-radius: 4px; padding: 1px 10px; color: var(--accent); font-weight: 600; letter-spacing: 2px; }
     .snippet-filled { display: inline-block; padding: 1px 8px; border-radius: 4px; font-weight: 600; }
@@ -400,6 +403,17 @@
     .example-card pre { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12.5px; line-height: 1.6; color: #a8d8b9; overflow-x: auto; white-space: pre; margin-bottom: 10px; }
     .example-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .example-meta .badge { font-family: 'SF Mono',monospace; padding: 3px 9px; }
+    .example-meta .badge.clickable { cursor: pointer; border: 1px solid transparent; transition: all .15s; }
+    .example-meta .badge.clickable:hover { transform: translateY(-1px); border-color: var(--accent); }
+    .example-meta .badge.clickable.open { background: var(--accent); color: #fff; }
+    .badge-chev { font-size: 9px; margin-left: 4px; opacity: .7; }
+    .optimal-reveal { background: rgba(124,106,247,.06); border: 1px solid rgba(124,106,247,.3); border-radius: 8px; padding: 12px 14px; margin: 10px 0 4px; font-size: 13px; line-height: 1.55; color: var(--text); }
+    .optimal-reveal-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+    .optimal-reveal p { margin-bottom: 8px; }
+    .optimal-reveal p:last-child { margin-bottom: 0; }
+    .optimal-reveal code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-family: 'SF Mono','Fira Code',monospace; font-size: 11.5px; color: #a8d8b9; }
+    .optimal-reveal strong { color: var(--accent); }
+    .optimal-code { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12px; line-height: 1.55; color: #a8d8b9; overflow-x: auto; white-space: pre; margin-top: 8px; }
     .example-meta .badge.time { background: rgba(0,184,148,.15); color: var(--easy); }
     .example-meta .badge.space { background: rgba(124,106,247,.15); color: var(--accent); }
     .example-why { font-size: 12px; color: var(--medium); margin-bottom: 8px; line-height: 1.5; }

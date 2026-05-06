@@ -242,7 +242,6 @@ function progressBarHtml(prog) {
 }
 
 function examplesHtml(examples, topicId) {
-  const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const cards = examples.map((ex, i) => {
     const linkedProblem = ex.problemId ? problems.find(p => p.id === ex.problemId) : null;
     const cta = linkedProblem
@@ -255,11 +254,8 @@ function examplesHtml(examples, topicId) {
       </div>
       <div class="example-problem">${ex.problem}</div>
       ${ex.approach ? `<div class="example-approach">${ex.approach}</div>` : ''}
-      ${ex.code ? `<pre>${escape(ex.code)}</pre>` : ''}
-      <div class="example-meta">
-        ${ex.time ? `<span class="badge time">Time: ${ex.time}</span>` : ''}
-        ${ex.space ? `<span class="badge space">Space: ${ex.space}</span>` : ''}
-      </div>
+      ${ex.code ? `<pre>${(ex.code).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>` : ''}
+      ${optimalMetaHtml(topicId, i, ex)}
       ${ex.why ? `<div class="example-why">${ex.why}</div>` : ''}
       ${cta}
       ${exampleExtrasHtml(topicId, i, ex)}
@@ -270,6 +266,45 @@ function examplesHtml(examples, topicId) {
     <h3>Worked Examples</h3>
     ${cards}
   </div>`;
+}
+
+const optimalRevealed = {}; // 'topicId-exIdx' → 'time' | 'space' | null
+
+function optimalMetaHtml(topicId, exIdx, ex) {
+  const key = `${topicId}-${exIdx}`;
+  const opened = optimalRevealed[key];
+  const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const timeBtn = ex.time ? `<button class="badge time clickable ${opened==='time'?'open':''}" onclick="toggleOptimalReveal('${topicId}', ${exIdx}, 'time')" title="Click for best-practice analysis">Time: ${ex.time} <span class="badge-chev">${opened==='time'?'▾':'▸'}</span></button>` : '';
+  const spaceBtn = ex.space ? `<button class="badge space clickable ${opened==='space'?'open':''}" onclick="toggleOptimalReveal('${topicId}', ${exIdx}, 'space')" title="Click for best-practice analysis">Space: ${ex.space} <span class="badge-chev">${opened==='space'?'▾':'▸'}</span></button>` : '';
+  let reveal = '';
+  if (opened) {
+    const opt = ex.optimal;
+    let body;
+    if (opt && (opt.note || opt.code)) {
+      const codeBlock = opt.code ? `<pre class="optimal-code">${escape(opt.code)}</pre>` : '';
+      body = `${opt.note || ''}${codeBlock}`;
+    } else {
+      const axis = opened === 'time' ? `time complexity (${ex.time})` : `space complexity (${ex.space})`;
+      body = `<p>This implementation is the <strong>standard optimal</strong> for this problem — its ${axis} can\'t be improved without changing the input format or violating the problem\'s constraints. Anything faster would skip work that the answer actually depends on.</p>`;
+    }
+    reveal = `<div class="optimal-reveal" id="opt-${topicId}-${exIdx}">
+      <div class="optimal-reveal-label">⚡ Best-practice analysis · ${opened === 'time' ? 'Time' : 'Space'}</div>
+      ${body}
+    </div>`;
+  }
+  return `<div class="example-meta-wrap" id="meta-${topicId}-${exIdx}">
+    <div class="example-meta">${timeBtn}${spaceBtn}</div>
+    ${reveal}
+  </div>`;
+}
+
+function toggleOptimalReveal(topicId, exIdx, axis) {
+  const key = `${topicId}-${exIdx}`;
+  optimalRevealed[key] = (optimalRevealed[key] === axis) ? null : axis;
+  const ex = (LEARNING_TOPICS.find(t => t.id === topicId) || {}).examples?.[exIdx];
+  if (!ex) return;
+  const wrap = document.getElementById(`meta-${topicId}-${exIdx}`);
+  if (wrap) wrap.outerHTML = optimalMetaHtml(topicId, exIdx, ex);
 }
 
 // In-memory comprehension state (per topic + example index + level)

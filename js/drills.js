@@ -655,7 +655,7 @@ function renderSnippetsCard() {
   if (snippetsIdx >= snippetsQueue.length) { renderSnippetsSummary(); return; }
   const q = snippetsQueue[snippetsIdx];
   const stats = snippetsAllTime[q.id];
-  const allTimeStr = stats && stats.total ? ` · seen ${stats.total}× · ${Math.round(stats.correct/stats.total*100)}% correct` : '';
+  const allTimeStr = stats && stats.total ? ` · ${Math.round(stats.correct/stats.total*100)}% correct` : '';
   const progressPct = (snippetsIdx / snippetsQueue.length) * 100;
   const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   // Render code with the {{1}} blank highlighted
@@ -687,11 +687,14 @@ function renderSnippetsCard() {
   panel.innerHTML = `
     <div class="quiz-card">
       <div class="quiz-bar">
-        <span>Snippet ${snippetsIdx + 1} of ${snippetsQueue.length} · ${q.pattern}${allTimeStr}</span>
+        <span>Snippet ${snippetsIdx + 1} of ${snippetsQueue.length} · LeetCode: <strong>${q.problem}</strong>${allTimeStr}</span>
         ${levelPill}
       </div>
       <div class="quiz-progressbar"><div style="width:${progressPct}%"></div></div>
-      <div class="snippet-problem-label">${q.problem}</div>
+      <div class="snippet-problem-heading">
+        <div class="snippet-problem-name">${q.problem}</div>
+        <div class="snippet-pattern-tag">${q.pattern}</div>
+      </div>
       <div class="example-problem" style="margin-bottom:14px">${q.brief}</div>
       ${codeHtml}
       <div class="snippet-prompt">Pick the correct fill for the blank:</div>

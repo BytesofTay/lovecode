@@ -233,7 +233,17 @@ def partition(arr, lo, hi):
             return [seen[target - n], i]
         seen[n] = i`,
         time: 'O(n)', space: 'O(n)',
-        why: 'The textbook "trade space for time" trick.' },
+        why: 'The textbook "trade space for time" trick.',
+        optimal: {
+          note: `<p>The shown hash-map solution is the <strong>standard optimal</strong> for this problem — O(n) time, O(n) space. You can\'t do better than O(n) time (you must look at every element at least once), and the only way to drop the space is to sort first and use two pointers, which costs O(n log n) time.</p><p>For comparison, the brute-force version is below — checking every pair is O(n²):</p>`,
+          code: `def two_sum_brute(nums, target):
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    return []`,
+        },
+      },
       { title: 'Valid Anagram — character counts', problemId: 53,
         problem: 'Determine if two strings are anagrams of each other.',
         approach: `<p>Count characters in both strings. If the counts match, they're anagrams. A hash map of <code>{char: count}</code> is the natural representation. Or, since lowercase English is fixed at 26 chars, use an array of length 26.</p>`,
@@ -247,7 +257,13 @@ def partition(arr, lo, hi):
         count[c] -= 1
     return True`,
         time: 'O(n)', space: 'O(1) for fixed alphabet',
-        why: 'Anagram = same characters, same counts. Counting is the universal pattern.' },
+        why: 'Anagram = same characters, same counts. Counting is the universal pattern.',
+        optimal: {
+          note: `<p>Counting is <strong>time-optimal</strong> at O(n). For a fixed alphabet (e.g., lowercase ASCII), space is O(1) since the count array has at most 26 entries.</p><p>The simpler alternative is to sort both strings and compare — clearer code, but O(n log n) time:</p>`,
+          code: `def is_anagram(s, t):
+    return sorted(s) == sorted(t)`,
+        },
+      },
       { title: 'Group Anagrams — hash by sorted key', problemId: 54,
         problem: 'Group strings that are anagrams of each other.',
         approach: `<p>Anagrams share a canonical form: their sorted character string. Group by that key. <code>"eat"</code>, <code>"tea"</code>, <code>"ate"</code> all sort to <code>"aet"</code>.</p>`,
@@ -536,7 +552,16 @@ snippet: `def length_of_longest_substring(s):
 
 # fact(4) → 4 · fact(3) → 4 · 3 · fact(2) → 4·3·2·1 = 24`,
         time: 'O(n)', space: 'O(n) stack',
-        why: 'Once you recognize the "smaller subproblem" structure, the code writes itself.' },
+        why: 'Once you recognize the "smaller subproblem" structure, the code writes itself.',
+        optimal: {
+          note: `<p>The recursive version is the <strong>teaching-canonical</strong> form, but it costs O(n) stack space. For production code, the iterative version is <strong>space-optimal at O(1)</strong>:</p>`,
+          code: `def factorial(n):
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result`,
+        },
+      },
       { title: 'Reverse a string — recursion on input', problemId: null,
         problem: 'Reverse a string without using any built-in reverse.',
         approach: `<p>Reverse of <code>"abcd"</code> = reverse of <code>"bcd"</code> + <code>"a"</code>. The base case is the empty string (or length 1).</p>`,
@@ -547,7 +572,18 @@ snippet: `def length_of_longest_substring(s):
 
 # "abcd" → reverse("bcd") + "a" → "dcba"`,
         time: 'O(n²) due to slicing', space: 'O(n)',
-        why: 'Same induction idea applied to a different shape — split off one element, recurse on the rest.' },
+        why: 'Same induction idea applied to a different shape — split off one element, recurse on the rest.',
+        optimal: {
+          note: `<p>The recursive form here is <strong>illustrative but not optimal</strong> — string slicing creates a new string each call → O(n²) total. The <strong>two-pointer iterative version</strong> is O(n) time and uses O(1) extra space (when you can mutate; otherwise O(n) for the output):</p>`,
+          code: `def reverse(s):
+    chars = list(s)
+    L, R = 0, len(chars) - 1
+    while L < R:
+        chars[L], chars[R] = chars[R], chars[L]
+        L += 1; R -= 1
+    return ''.join(chars)`,
+        },
+      },
       { title: 'Tree max depth — recursion on structure', problemId: 60,
         problem: 'Given a binary tree, return its maximum depth.',
         approach: `<p>The depth of any tree = 1 + max(depth of left subtree, depth of right subtree). Base case: a null tree has depth 0.</p>
@@ -659,7 +695,11 @@ snippet: `def factorial(n):
         best = max(best, p - min_price)
     return best`,
         time: 'O(n)', space: 'O(1)',
-        why: 'You only need the smallest valid buy day to compute every sell day.' },
+        why: 'You only need the smallest valid buy day to compute every sell day.',
+        optimal: {
+          note: `<p>This is the <strong>fully optimal</strong> single-transaction solution — O(n) time, O(1) space. The brute force pairs every (i, j) with i &lt; j and checks <code>prices[j] - prices[i]</code> → O(n²) and pointless once you spot the "running min" trick.</p>`,
+        },
+      },
       { title: 'Maximum Subarray — Kadane\'s', problemId: 5,
         problem: 'Find the contiguous subarray with the largest sum.',
         approach: `<p>Walk the array tracking a "running sum." If it goes negative, reset to the current element (the prefix can\'t help future subarrays). Track the max along the way.</p>`,
@@ -670,7 +710,27 @@ snippet: `def factorial(n):
         best = max(best, cur)
     return best`,
         time: 'O(n)', space: 'O(1)',
-        why: 'A negative-prefix can never help — drop it and start fresh. That observation makes it linear instead of cubic.' },
+        why: 'A negative-prefix can never help — drop it and start fresh. That observation makes it linear instead of cubic.',
+        optimal: {
+          note: `<p>Kadane\'s is the <strong>standard optimal</strong> — O(n) time and O(1) space. The cubic brute force checks every (i, j) range and re-sums, the quadratic version reuses prefix sums; both are obsolete once you spot the "drop negative prefix" insight.</p><p>An equivalent <strong>divide-and-conquer</strong> solution exists at O(n log n) — sometimes asked as a follow-up to test recursion fluency:</p>`,
+          code: `def max_subarray_dc(nums):
+    def helper(l, r):
+        if l == r: return nums[l]
+        m = (l + r) // 2
+        # Best in left, right, or crossing the middle
+        left_max = helper(l, m)
+        right_max = helper(m + 1, r)
+        # Crossing: extend left from m, right from m+1
+        s, lm = 0, float('-inf')
+        for i in range(m, l - 1, -1):
+            s += nums[i]; lm = max(lm, s)
+        s, rm = 0, float('-inf')
+        for i in range(m + 1, r + 1):
+            s += nums[i]; rm = max(rm, s)
+        return max(left_max, right_max, lm + rm)
+    return helper(0, len(nums) - 1)`,
+        },
+      },
       { title: 'Product of Array Except Self — prefix/suffix', problemId: 4,
         problem: 'Return an array where output[i] = product of all elements except nums[i]. No division allowed.',
         approach: `<p>Two passes. First pass: prefix products from the left (everything before i). Second pass: multiply each by suffix products from the right (everything after i).</p>`,
@@ -792,7 +852,18 @@ snippet: `def factorial(n):
         curr = nxt
     return prev`,
         time: 'O(n)', space: 'O(1)',
-        why: 'The three-pointer dance shows up in many list problems. Burn it into muscle memory.' },
+        why: 'The three-pointer dance shows up in many list problems. Burn it into muscle memory.',
+        optimal: {
+          note: `<p>The iterative form is <strong>optimal on both axes</strong>: O(n) time (you must touch each node) and O(1) space.</p><p>The recursive version below is elegant but costs O(n) stack space — interviewers usually want you to mention both, then code the iterative one:</p>`,
+          code: `def reverse_list(head):
+    if not head or not head.next:
+        return head
+    new_head = reverse_list(head.next)
+    head.next.next = head
+    head.next = None
+    return new_head`,
+        },
+      },
       { title: 'Linked List Cycle — Floyd\'s tortoise and hare', problemId: 41,
         problem: 'Determine if a linked list has a cycle.',
         approach: `<p>Two pointers: slow advances 1, fast advances 2. If there\'s a cycle, fast will eventually meet slow. If fast hits null, there\'s no cycle.</p>
