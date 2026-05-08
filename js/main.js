@@ -4,6 +4,7 @@ function switchMode(mode) {
   currentMode = mode;
   // Stop lazy timer when leaving drills mode entirely
   if (mode !== 'drills' && typeof stopLazyTimer === 'function') stopLazyTimer();
+  if (mode !== 'sorting' && typeof tracePause === 'function') tracePause();
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + mode).classList.add('active');
   const m = document.getElementById('appMain');

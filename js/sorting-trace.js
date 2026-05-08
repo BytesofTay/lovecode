@@ -179,15 +179,62 @@ function traceHeap(input) {
 
 const TRACERS = { merge: traceMerge, quick: traceQuick, heap: traceHeap, insertion: traceInsertion, selection: traceSelection };
 // traceStates / traceIdx live in js/state.js
+let tracePlaying = false;
+let traceSpeed = 600; // ms between steps
+let tracePlayInterval = null;
 
 function initTrace(algoId) {
   traceStates = TRACERS[algoId](TRACE_SAMPLE);
   traceIdx = 0;
+  tracePause();
 }
 
-function traceNext() { if (traceIdx < traceStates.length - 1) { traceIdx++; updateTraceDOM(); } }
+function traceNext() { if (traceIdx < traceStates.length - 1) { traceIdx++; updateTraceDOM(); } else { tracePause(); } }
 function tracePrev() { if (traceIdx > 0) { traceIdx--; updateTraceDOM(); } }
-function traceReset() { traceIdx = 0; updateTraceDOM(); }
+function traceReset() { traceIdx = 0; tracePause(); updateTraceDOM(); }
+
+function tracePlay() {
+  if (tracePlaying) return;
+  if (traceIdx >= traceStates.length - 1) traceIdx = 0;
+  tracePlaying = true;
+  tracePlayInterval = setInterval(() => {
+    if (traceIdx >= traceStates.length - 1) { tracePause(); updateTraceDOM(); return; }
+    traceIdx++;
+    updateTraceDOM();
+  }, traceSpeed);
+  updateTraceDOM();
+}
+
+function tracePause() {
+  tracePlaying = false;
+  if (tracePlayInterval) { clearInterval(tracePlayInterval); tracePlayInterval = null; }
+}
+
+function traceTogglePlay() {
+  if (tracePlaying) tracePause();
+  else tracePlay();
+  updateTraceDOM();
+}
+
+function traceSetSpeed(ms) {
+  traceSpeed = parseInt(ms, 10);
+  if (tracePlaying) {
+    tracePause();
+    tracePlay();
+  } else {
+    updateTraceDOM();
+  }
+}
+
+function traceOpCounts(uptoIdx) {
+  let compares = 0, swaps = 0;
+  for (let i = 1; i <= uptoIdx && i < traceStates.length; i++) {
+    const s = traceStates[i];
+    if ((s.compare || []).length) compares++;
+    if ((s.swap || []).length) swaps++;
+  }
+  return { compares, swaps };
+}
 
 function classForCell(s, i) {
   const sortedSet = new Set(s.sorted || []);
@@ -205,28 +252,51 @@ function traceHtml() {
   if (!traceStates.length) return '';
   const s = traceStates[traceIdx];
   const max = Math.max(...s.a, 1);
+  // Compare connector — if exactly 2 indices in compare, draw an arc between them
+  const cmp = (s.compare || []).slice().sort((a, b) => a - b);
+  const showConnector = cmp.length === 2;
   const bars = s.a.map((v, i) => {
     const heightPct = Math.max(8, (v / max) * 100);
-    return `<div class="trace-bar-wrap">
+    return `<div class="trace-bar-wrap" data-idx="${i}">
       <div class="${classForCell(s, i)}" style="height:${heightPct}%">
         <span class="trace-bar-label">${v}</span>
       </div>
       <div class="trace-bar-idx">${i}</div>
     </div>`;
   }).join('');
-  // Step categorization for the pill
   let stepKind = 'step';
   if ((s.swap || []).length) stepKind = 'swap';
   else if ((s.compare || []).length) stepKind = 'compare';
   else if (s.pivot !== null) stepKind = 'pivot';
+  const ops = traceOpCounts(traceIdx);
+  const progressPct = Math.round((traceIdx / Math.max(traceStates.length - 1, 1)) * 100);
+  const playLabel = tracePlaying ? '⏸ Pause' : '▶ Play';
+  const playClass = tracePlaying ? 'btn-ghost' : 'btn-primary';
+  // Connector overlay (positioned absolute over .trace-bars)
+  let connector = '';
+  if (showConnector) {
+    const n = s.a.length;
+    const left1 = ((cmp[0] + 0.5) / n) * 100;
+    const left2 = ((cmp[1] + 0.5) / n) * 100;
+    connector = `<svg class="trace-connector" viewBox="0 0 100 30" preserveAspectRatio="none">
+      <path d="M ${left1} 26 Q ${(left1+left2)/2} 4 ${left2} 26" stroke="rgba(251,191,36,.85)" stroke-width="0.6" fill="none" stroke-dasharray="1,1" />
+    </svg>`;
+  }
   return `
-    <h3>Step Through · sample [${TRACE_SAMPLE.join(', ')}]</h3>
+    <div class="trace-header">
+      <h3>Step Through · sample [${TRACE_SAMPLE.join(', ')}]</h3>
+      <div class="trace-counters">
+        <div class="op-counter compares"><span class="op-num">${ops.compares}</span><span class="op-lbl">compares</span></div>
+        <div class="op-counter swaps"><span class="op-num">${ops.swaps}</span><span class="op-lbl">swaps</span></div>
+      </div>
+    </div>
     <div class="trace-step-counter">
       <span class="trace-step-pill kind-${stepKind}">${stepKind.toUpperCase()}</span>
       <span>Step ${traceIdx + 1} of ${traceStates.length}</span>
+      <div class="trace-prog-bar"><div class="trace-prog-fill" style="width:${progressPct}%"></div></div>
     </div>
     <div class="trace-desc">${s.desc}</div>
-    <div class="trace-bars">${bars}</div>
+    <div class="trace-bars">${connector}${bars}</div>
     <div class="trace-legend">
       <span class="lg compare">Comparing</span>
       <span class="lg swap">Swapping / placing</span>
@@ -237,7 +307,13 @@ function traceHtml() {
     <div class="trace-controls">
       <button class="btn btn-ghost" onclick="traceReset()">↺ Reset</button>
       <button class="btn btn-ghost" onclick="tracePrev()" ${traceIdx === 0 ? 'disabled' : ''}>← Prev</button>
-      <button class="btn btn-primary" onclick="traceNext()" ${traceIdx === traceStates.length - 1 ? 'disabled' : ''}>Next →</button>
+      <button class="btn ${playClass}" onclick="traceTogglePlay()">${playLabel}</button>
+      <button class="btn btn-ghost" onclick="traceNext()" ${traceIdx === traceStates.length - 1 ? 'disabled' : ''}>Next →</button>
+    </div>
+    <div class="trace-speed">
+      <span class="trace-speed-label">Speed</span>
+      <input type="range" min="100" max="1500" step="50" value="${traceSpeed}" oninput="traceSetSpeed(this.value)" class="trace-speed-slider" />
+      <span class="trace-speed-val">${(traceSpeed/1000).toFixed(2)}s/step</span>
     </div>`;
 }
 
