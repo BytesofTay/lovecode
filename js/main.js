@@ -16,6 +16,7 @@ function switchMode(mode) {
   else if (mode === 'drills') renderDrillsMode();
   else if (mode === 'build') renderBuildMode();
   else if (mode === 'recall') renderRecallMode();
+  else if (mode === 'bootcamp') renderBootcampMode();
   else if (mode === 'mock') renderMockMode();
 }
 

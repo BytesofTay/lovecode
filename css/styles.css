@@ -450,6 +450,68 @@
     @media (max-width: 768px) {
       .flashcard-rating { grid-template-columns: repeat(2, 1fr); }
     }
+    /* ── BOOTCAMP MODE ─────────────────────────────────────── */
+    .bc-container { padding: 32px 28px 60px; max-width: 980px; margin: 0 auto; }
+    .bc-hero { background: var(--card-grad), var(--surface); border: 1px solid rgba(255,113,206,.4); border-radius: 16px; padding: 24px 28px; margin-bottom: 28px; box-shadow: 0 6px 28px rgba(255,113,206,.15); }
+    .bc-hero-start { text-align: center; padding: 40px 28px; }
+    .bc-hero-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+    .bc-hero-sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .bc-hero-blurb { font-size: 14px; color: var(--text); line-height: 1.6; max-width: 640px; margin: 0 auto 14px; }
+    .bc-hero-blurb strong { color: var(--accent2); }
+    .bc-hero-left { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+    .bc-hero-stats { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+    .bc-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; min-width: 90px; text-align: center; }
+    .bc-stat-num { font-size: 22px; font-weight: 800; line-height: 1; }
+    .bc-stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 700; margin-top: 4px; }
+    .bc-progress-bar { height: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .bc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%); border-radius: 3px; transition: width .4s; box-shadow: 0 0 12px rgba(255,113,206,.4); }
+    .bc-reset { margin-top: 14px; font-size: 11px; padding: 6px 12px; }
+    .bc-week-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 800; margin: 24px 0 10px; }
+    .bc-day-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .bc-day-card { background: var(--card-grad), var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all .2s; position: relative; }
+    .bc-day-card:hover:not(.locked) { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 8px 22px rgba(255,113,206,.18); }
+    .bc-day-card.done { border-color: rgba(80,250,123,.4); background: linear-gradient(145deg, rgba(80,250,123,.06) 0%, rgba(0,245,255,.02) 100%), var(--surface); }
+    .bc-day-card.current { border-color: var(--accent); background: linear-gradient(145deg, rgba(255,113,206,.08) 0%, rgba(0,245,255,.03) 100%), var(--surface); box-shadow: 0 0 0 1px rgba(255,113,206,.4), 0 6px 20px rgba(255,113,206,.18); }
+    .bc-day-card.locked { opacity: .55; cursor: not-allowed; }
+    .bc-day-num { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--accent); font-weight: 800; margin-bottom: 4px; }
+    .bc-day-card.done .bc-day-num { color: var(--easy); }
+    .bc-day-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; line-height: 1.3; }
+    .bc-day-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); }
+    .bc-status { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 7px; border-radius: 999px; }
+    .bc-status.done { background: rgba(80,250,123,.15); color: var(--easy); }
+    .bc-status.current { background: rgba(255,113,206,.18); color: var(--accent); }
+    .bc-status.locked { background: var(--surface2); color: var(--muted); }
+    .bc-status.pending { background: rgba(0,245,255,.1); color: var(--accent2); }
+    .bc-footer { margin-top: 24px; padding: 14px 16px; font-size: 12px; color: var(--muted); background: var(--surface); border-radius: 8px; line-height: 1.55; border: 1px solid var(--border); }
+    .bc-day-detail { max-width: 760px; }
+    .bc-back { background: transparent; border: none; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 18px; padding: 4px 0; }
+    .bc-back:hover { color: var(--accent-hover); }
+    .bc-day-header { padding-bottom: 22px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+    .bc-day-num-large { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); font-weight: 800; margin-bottom: 8px; }
+    .bc-day-h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 8px; line-height: 1.15; }
+    .bc-day-meta-large { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .bc-day-desc { font-size: 14px; line-height: 1.6; color: var(--text); max-width: 640px; }
+    .bc-task { background: var(--card-grad), var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; transition: border-color .2s, opacity .2s; }
+    .bc-task.done { opacity: .65; border-color: rgba(80,250,123,.35); }
+    .bc-task-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .bc-check { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: transparent; color: var(--easy); cursor: pointer; font-size: 14px; font-weight: 700; flex-shrink: 0; transition: all .15s; }
+    .bc-check:hover { border-color: var(--accent); }
+    .bc-task.done .bc-check { background: var(--easy); color: var(--bg); border-color: var(--easy); }
+    .bc-task-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .bc-task-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+    .bc-task-actions { display: flex; flex-direction: column; gap: 6px; padding-left: 40px; }
+    .bc-task-actions.bc-prob-list { gap: 8px; }
+    .bc-link { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; text-align: left; transition: all .15s; display: flex; align-items: center; gap: 10px; font-family: inherit; }
+    .bc-link:hover { border-color: var(--accent); background: rgba(255,113,206,.06); transform: translateX(2px); }
+    .bc-prob-link { padding: 9px 12px; }
+    .bc-diff { font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; }
+    .bc-diff.easy { background: rgba(80,250,123,.15); color: var(--easy); }
+    .bc-diff.medium { background: rgba(255,217,61,.15); color: var(--medium); }
+    .bc-diff.hard { background: rgba(255,84,112,.15); color: var(--hard); }
+    .bc-prob-name { font-weight: 500; }
+    .bc-day-footer { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border); display: flex; justify-content: center; }
+    .bc-complete-btn { padding: 14px 28px; font-size: 14px; font-weight: 700; }
+    .bc-day-already-done { font-size: 13px; color: var(--easy); font-weight: 600; }
     .snippet-code { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'SF Mono','Fira Code',monospace; font-size: 12.5px; line-height: 1.6; color: #cfd8dc; white-space: pre; overflow-x: auto; margin: 0 0 14px; }
     .snippet-blank { display: inline-block; background: rgba(255,113,206,.18); border: 1px dashed var(--accent); border-radius: 4px; padding: 1px 10px; color: var(--accent); font-weight: 600; letter-spacing: 2px; }
     .snippet-filled { display: inline-block; padding: 1px 8px; border-radius: 4px; font-weight: 600; }
@@ -591,6 +653,7 @@
 
     /* === Learn mode === */
     main.mode-learn { display: block; overflow-y: auto; padding: 28px 24px 60px; }
+    main.mode-bootcamp { display: block; overflow-y: auto; padding: 0; }
     .learn-container { max-width: 1100px; margin: 0 auto; }
     .learn-header { margin-bottom: 28px; }
     .learn-header h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
