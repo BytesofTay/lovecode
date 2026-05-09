@@ -1,14 +1,19 @@
     :root {
-      --bg: #0b0f1e; --surface: #131a2e; --surface2: #1c2541;
-      --border: #2a3550; --text: #f1f5f9; --muted: #94a3b8;
-      --easy: #34d399; --medium: #fbbf24; --hard: #fb7185;
-      --accent: #a78bfa; --accent-hover: #c4b5fd;
-      --accent2: #22d3ee; --accent3: #f472b6;
-      --gradient-bg: radial-gradient(ellipse at top left, rgba(167,139,250,.10) 0%, transparent 45%),
-                     radial-gradient(ellipse at bottom right, rgba(34,211,238,.07) 0%, transparent 45%),
-                     #0b0f1e;
-      --card-grad: linear-gradient(145deg, rgba(167,139,250,.04) 0%, rgba(34,211,238,.02) 100%);
-      --shadow-glow: 0 0 0 1px rgba(167,139,250,.2), 0 8px 24px rgba(167,139,250,.08);
+      /* Warm dark — Catppuccin-Mocha-inspired mauve palette */
+      --bg: #1e1e2e; --surface: #313244; --surface2: #45475a;
+      --border: #44485e; --text: #cdd6f4; --muted: #9399b2;
+      --easy: #a6e3a1; --medium: #fab387; --hard: #f38ba8;
+      --accent: #cba6f7; --accent-hover: #b4befe;
+      --accent2: #89dceb; --accent3: #f5c2e7;
+      --code-bg: #11111b; --code-text: #cdd6f4; --code-string: #a6e3a1;
+      --gradient-bg: radial-gradient(ellipse at top left, rgba(203,166,247,.12) 0%, transparent 50%),
+                     radial-gradient(ellipse at bottom right, rgba(137,220,235,.08) 0%, transparent 50%),
+                     radial-gradient(ellipse at top right, rgba(245,194,231,.05) 0%, transparent 45%),
+                     #1e1e2e;
+      --card-grad: linear-gradient(145deg, rgba(203,166,247,.05) 0%, rgba(137,220,235,.02) 100%);
+      --shadow-card: 0 4px 16px rgba(0,0,0,.3);
+      --shadow-card-hover: 0 12px 32px rgba(203,166,247,.18);
+      --shadow-glow: 0 0 0 1px rgba(203,166,247,.25), 0 8px 24px rgba(203,166,247,.12);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -18,7 +23,7 @@
       -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
     header {
-      background: rgba(19,26,46,.7); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      background: rgba(30,30,46,.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center; padding: 0 20px; gap: 10px;
       position: relative; z-index: 10;
