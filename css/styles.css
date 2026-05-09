@@ -1,19 +1,20 @@
     :root {
-      /* Warm dark — Catppuccin-Mocha-inspired mauve palette */
-      --bg: #1e1e2e; --surface: #313244; --surface2: #45475a;
-      --border: #44485e; --text: #cdd6f4; --muted: #9399b2;
+      /* Vibrant lilac dark — pushed warmer and more saturated than Catppuccin */
+      --bg: #261c3e; --surface: #382a55; --surface2: #4a3868;
+      --border: #5a4980; --text: #ece5ff; --muted: #b3a5d4;
       --easy: #a6e3a1; --medium: #fab387; --hard: #f38ba8;
-      --accent: #cba6f7; --accent-hover: #b4befe;
+      --accent: #d4b3ff; --accent-hover: #e0c5ff;
       --accent2: #89dceb; --accent3: #f5c2e7;
-      --code-bg: #11111b; --code-text: #cdd6f4; --code-string: #a6e3a1;
-      --gradient-bg: radial-gradient(ellipse at top left, rgba(203,166,247,.12) 0%, transparent 50%),
-                     radial-gradient(ellipse at bottom right, rgba(137,220,235,.08) 0%, transparent 50%),
-                     radial-gradient(ellipse at top right, rgba(245,194,231,.05) 0%, transparent 45%),
-                     #1e1e2e;
-      --card-grad: linear-gradient(145deg, rgba(203,166,247,.05) 0%, rgba(137,220,235,.02) 100%);
-      --shadow-card: 0 4px 16px rgba(0,0,0,.3);
-      --shadow-card-hover: 0 12px 32px rgba(203,166,247,.18);
-      --shadow-glow: 0 0 0 1px rgba(203,166,247,.25), 0 8px 24px rgba(203,166,247,.12);
+      --code-bg: #1a1228; --code-text: #e8dffb; --code-string: #a6e3a1;
+      --gradient-bg: radial-gradient(ellipse at top left, rgba(212,179,255,.22) 0%, transparent 55%),
+                     radial-gradient(ellipse at bottom right, rgba(245,194,231,.12) 0%, transparent 55%),
+                     radial-gradient(ellipse at top right, rgba(137,220,235,.08) 0%, transparent 50%),
+                     radial-gradient(ellipse at bottom left, rgba(212,179,255,.10) 0%, transparent 50%),
+                     #261c3e;
+      --card-grad: linear-gradient(145deg, rgba(212,179,255,.10) 0%, rgba(245,194,231,.04) 100%);
+      --shadow-card: 0 4px 18px rgba(20,10,40,.4);
+      --shadow-card-hover: 0 12px 36px rgba(212,179,255,.25);
+      --shadow-glow: 0 0 0 1px rgba(212,179,255,.32), 0 8px 28px rgba(212,179,255,.18);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -23,7 +24,7 @@
       -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
     header {
-      background: rgba(30,30,46,.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      background: rgba(38,28,62,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center; padding: 0 20px; gap: 10px;
       position: relative; z-index: 10;
