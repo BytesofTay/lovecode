@@ -120,6 +120,29 @@ for i, x in enumerate(nums):
       { heading: 'When to reach for it', body: `<p>If your problem becomes obvious after sorting (e.g. "find duplicates," "merge intervals," "k closest elements"), <strong>just sort first</strong>. The <code>O(n log n)</code> cost is usually dwarfed by the savings.</p>
 <p>You almost never implement these from scratch in an interview — call the language's built-in sort. But you must know each algorithm's complexity, stability, space, and when each one wins.</p>` }
     ],
+    lazyDetails: [
+      { heading: '🃏 Like sorting playing cards in your hand',
+        body: `<p>Imagine someone hands you a shuffled deck of 5 cards: <strong>5, 2, 8, 1, 9</strong>. Different "sorting algorithms" are just different ways your brain might sort them.</p>
+<p><strong>Insertion sort</strong> = pick them up one by one and slide each into the right spot in your hand. That's how most humans actually sort cards. Fast on small hands. Slow if you have a thousand cards.</p>
+<p><strong>Selection sort</strong> = scan the whole spread, grab the smallest, put it first. Then scan the rest, grab the smallest, put it second. Repeat. Always the same amount of work — slow but predictable.</p>
+<p><strong>Merge sort</strong> = split the cards into two piles, sort each pile, then carefully zipper them back together. Sounds elaborate, but it's the trick that scales to a million cards.</p>
+<p><strong>Quick sort</strong> = pick any card (the "pivot"), throw smaller cards to the left, bigger to the right. Now repeat on each side. Usually the fastest in practice.</p>` },
+      { heading: '🏃 Why fast sorts crush slow sorts',
+        body: `<p>For 10 items, the difference doesn't matter — your computer does it in microseconds either way.</p>
+<p>For 1,000 items, the slow sorts (insertion, selection) do roughly <strong>1,000,000</strong> operations. The fast ones (merge, quick) do roughly <strong>10,000</strong>. <strong>100× faster</strong>.</p>
+<p>For 1,000,000 items, the slow sorts try to do <strong>a trillion</strong> operations (your computer freezes for hours). The fast sorts do about <strong>20 million</strong> (a fraction of a second). <strong>50,000× faster</strong>.</p>
+<p>That gap is why every real-world programming language ships an O(n log n) sort. You almost never write one yourself — but you have to know which is which on a whiteboard.</p>` },
+      { heading: '🤔 When you reach for it',
+        body: `<p>Anytime you find yourself thinking <em>"this problem would be easy if the list were in order,"</em> — sort first.</p>
+<p>"Find duplicates" → sort, then check neighbors.<br>"Merge overlapping intervals" → sort by start time, then walk and merge.<br>"K closest items" → sort by distance, take the first K.<br>"Two numbers that sum to target" (without a hash map) → sort, then two pointers from both ends.</p>
+<p>The <code>n log n</code> cost is usually tiny compared to the time you save by working on a sorted list.</p>` },
+      { heading: '🏷️ "Stable" — what it means',
+        body: `<p>Imagine a list of people: <code>Alice 30, Bob 30, Carol 25</code>. You sort by age.</p>
+<p>A <strong>stable</strong> sort preserves the original order of people with the SAME age: <code>Carol 25, Alice 30, Bob 30</code>.</p>
+<p>An <strong>unstable</strong> sort might give: <code>Carol 25, Bob 30, Alice 30</code>. Same ages — but Alice and Bob swapped places.</p>
+<p>Why care? Because real-world sorting often has multiple keys. "Sort by department, then by salary." A stable sort lets you do that with two simple passes. An unstable one would scramble your earlier work.</p>
+<p><strong>Stable</strong>: Merge Sort, Insertion Sort, Timsort (Python's built-in). <strong>Not stable</strong>: Quick Sort, Heap Sort, Selection Sort.</p>` },
+    ],
     examples: [
       { title: 'Merge Sort — guaranteed O(n log n)', problemId: null,
         problem: 'Sort an unsorted array using divide and conquer.',
