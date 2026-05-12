@@ -517,6 +517,8 @@
     .snippet-filled { display: inline-block; padding: 1px 8px; border-radius: 4px; font-weight: 600; }
     .snippet-filled.right { background: rgba(0,184,148,.2); color: var(--easy); border: 1px solid rgba(0,184,148,.5); }
     .snippet-filled.wrong { background: rgba(225,112,85,.2); color: var(--hard); border: 1px solid rgba(225,112,85,.5); }
+    .snippet-filled.neutral { background: rgba(167,139,250,.10); color: var(--text); border: 1px dashed rgba(167,139,250,.25); opacity: .85; }
+    .snippet-blank-rotation { display: inline-block; font-size: 10.5px; color: var(--muted); margin: -4px 0 10px; padding: 3px 9px; background: rgba(0,245,255,.06); border: 1px solid rgba(0,245,255,.2); border-radius: 999px; }
     .snippet-prompt { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; }
     .snippet-options { display: flex; flex-direction: column; gap: 8px; }
     .btn-mc.snippet-opt { font-family: 'SF Mono','Fira Code',monospace; text-align: left; padding: 10px 14px; }

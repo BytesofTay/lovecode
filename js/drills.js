@@ -639,7 +639,12 @@ function renderLazySummary() {
 
 // ── Snippets session (fill-in-the-blank) ──────────────────────────────────
 function startSnippetsSession() {
-  snippetsQueue = shuffleCopy(SNIPPET_CHALLENGES).slice(0, SNIPPETS_PER_SESSION);
+  // For each drawn snippet, pick a random blank index to be the ACTIVE one.
+  // Other blanks get filled with their canonical answer at render time.
+  snippetsQueue = shuffleCopy(SNIPPET_CHALLENGES).slice(0, SNIPPETS_PER_SESSION).map(s => ({
+    snippet: s,
+    activeBlankIdx: Math.floor(Math.random() * (s.blanks || []).length),
+  }));
   snippetsIdx = 0;
   snippetsSession = { correct: 0, total: 0 };
   snippetsAnswered = false;
@@ -653,37 +658,62 @@ function renderSnippetsCard() {
   const panel = document.getElementById('drillsPanel');
   if (!panel) return;
   if (snippetsIdx >= snippetsQueue.length) { renderSnippetsSummary(); return; }
-  const q = snippetsQueue[snippetsIdx];
+  const item = snippetsQueue[snippetsIdx];
+  const q = item.snippet;
+  const activeIdx = item.activeBlankIdx;
+  const activeBlank = q.blanks[activeIdx];
   const stats = snippetsAllTime[q.id];
   const allTimeStr = stats && stats.total ? ` · ${Math.round(stats.correct/stats.total*100)}% correct` : '';
   const progressPct = (snippetsIdx / snippetsQueue.length) * 100;
   const escape = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  // Render code with the {{1}} blank highlighted
-  const parts = q.code.split('{{1}}');
-  const blankToken = snippetsAnswered
-    ? `<span class="snippet-filled ${snippetsPicked === q.answerIdx ? 'right' : 'wrong'}">${escape(q.options[snippetsPicked])}</span>`
-    : `<span class="snippet-blank">▢▢▢▢▢</span>`;
-  const codeHtml = `<pre class="snippet-code">${escape(parts[0] || '')}${blankToken}${escape(parts[1] || '')}</pre>`;
-  const buttons = q.options.map((opt, i) => {
+  // Render the code: replace each {{Bn}} marker. The ACTIVE blank is shown as ▢▢▢
+  // (or the user's pick once answered); other blanks are filled with their canonical answer.
+  let codeHtml = escape(q.code);
+  q.blanks.forEach((b, i) => {
+    const marker = `{{B${i + 1}}}`;
+    let replacement;
+    if (i === activeIdx) {
+      if (snippetsAnswered) {
+        const pickedOpt = q.blanks[activeIdx].options[snippetsPicked];
+        const cls = snippetsPicked === activeBlank.answerIdx ? 'right' : 'wrong';
+        replacement = `<span class="snippet-filled ${cls}">${escape(pickedOpt)}</span>`;
+        if (snippetsPicked !== activeBlank.answerIdx) {
+          const correctOpt = activeBlank.options[activeBlank.answerIdx];
+          replacement += `<span class="snippet-arrow">→</span><span class="snippet-filled right">${escape(correctOpt)}</span>`;
+        }
+      } else {
+        replacement = `<span class="snippet-blank current">▢ blank ▢</span>`;
+      }
+    } else {
+      // Fill with canonical
+      const canonical = b.options[b.answerIdx];
+      replacement = `<span class="snippet-filled neutral">${escape(canonical)}</span>`;
+    }
+    codeHtml = codeHtml.replace(marker, replacement);
+  });
+  const buttons = activeBlank.options.map((opt, i) => {
     let cls = 'btn-mc snippet-opt';
     if (snippetsAnswered) {
-      if (i === q.answerIdx) cls += ' correct';
+      if (i === activeBlank.answerIdx) cls += ' correct';
       else if (i === snippetsPicked) cls += ' wrong';
     }
     return `<button class="${cls}" ${snippetsAnswered?'disabled':''} onclick="pickSnippetAnswer(${i})"><code>${escape(opt)}</code></button>`;
   }).join('');
   let feedback = '';
   if (snippetsAnswered) {
-    const right = snippetsPicked === q.answerIdx;
+    const right = snippetsPicked === activeBlank.answerIdx;
     feedback = `<div class="quiz-feedback ${right?'right':'wrong'}">
-      ${right ? '✓ Correct.' : `✗ The correct fill is: <code>${escape(q.options[q.answerIdx])}</code>`}
-      <div class="exp">${q.explanation}</div>
+      ${right ? '✓ Correct.' : `✗ The correct fill is: <code>${escape(activeBlank.options[activeBlank.answerIdx])}</code>`}
+      <div class="exp">${activeBlank.explanation}</div>
     </div>
     <div class="quiz-actions">
       <button class="btn btn-primary" onclick="nextSnippetQuestion()">${snippetsIdx === snippetsQueue.length - 1 ? 'See Results' : 'Next →'}</button>
     </div>`;
   }
   const levelPill = q.level ? `<span class="level-pill ${q.level}">${q.level}</span>` : '';
+  const blankProgressLabel = q.blanks.length > 1
+    ? `<span class="snippet-blank-rotation">blank ${activeIdx + 1}/${q.blanks.length} · rotates each session</span>`
+    : '';
   panel.innerHTML = `
     <div class="quiz-card">
       <div class="quiz-bar">
@@ -696,7 +726,8 @@ function renderSnippetsCard() {
         <div class="snippet-pattern-tag">${q.pattern}</div>
       </div>
       <div class="example-problem" style="margin-bottom:14px">${q.brief}</div>
-      ${codeHtml}
+      <pre class="snippet-code">${codeHtml}</pre>
+      ${blankProgressLabel}
       <div class="snippet-prompt">Pick the correct fill for the blank:</div>
       <div class="snippet-options">${buttons}</div>
       ${feedback}
@@ -707,13 +738,21 @@ function pickSnippetAnswer(idx) {
   if (snippetsAnswered) return;
   snippetsAnswered = true;
   snippetsPicked = idx;
-  const q = snippetsQueue[snippetsIdx];
-  const correct = idx === q.answerIdx;
+  const item = snippetsQueue[snippetsIdx];
+  const q = item.snippet;
+  const activeBlank = q.blanks[item.activeBlankIdx];
+  const correct = idx === activeBlank.answerIdx;
   snippetsSession.total++;
   if (correct) snippetsSession.correct++;
   else {
     const reIdx = Math.min(snippetsIdx + 3, snippetsQueue.length);
-    snippetsQueue.splice(reIdx, 0, q);
+    // Re-queue with a DIFFERENT blank if the snippet has more than one
+    let nextActive = item.activeBlankIdx;
+    if (q.blanks.length > 1) {
+      do { nextActive = Math.floor(Math.random() * q.blanks.length); }
+      while (nextActive === item.activeBlankIdx);
+    }
+    snippetsQueue.splice(reIdx, 0, { snippet: q, activeBlankIdx: nextActive });
   }
   snippetsAllTime[q.id] = snippetsAllTime[q.id] || { correct: 0, total: 0 };
   snippetsAllTime[q.id].total++;
