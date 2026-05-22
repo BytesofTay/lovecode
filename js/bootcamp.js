@@ -1,12 +1,13 @@
-// ── Bootcamp mode: 14-Day curriculum with daily packs ─────────────────────
-// State persists to localStorage. Each day has a checklist; complete all
-// items to mark the day done and unlock the next.
+// ── Bootcamp mode: 7-Day Start Here Path ──────────────────────────────────
+// State persists to localStorage. Each day has a 3-task checklist
+// (🧠 Teach · 🌱 Warmup Easy · 🌊 Plunge Medium); complete all three
+// to mark the day done and unlock the next.
 
 const BOOTCAMP_STATE_KEY = 'lovecode_bootcamp';
 let bootcampData = {
-  startedAt: null,           // ms timestamp of "Start Bootcamp" click
+  startedAt: null,           // ms timestamp of "Start the Path" click
   completedDays: {},         // { 1: timestamp, 2: timestamp, ... }
-  taskDone: {},              // { '1-learn': true, '1-drills': true, '1-problems': true, '1-recall': true }
+  taskDone: {},              // { '1-teach': true, '1-warmup': true, '1-plunge': true }
   view: 'map',               // 'map' | 'day'
   activeDay: null,           // current day being viewed in 'day' view
 };
@@ -23,7 +24,6 @@ function saveBootcampState() {
 }
 
 function bootcampStreak() {
-  // Streak = max consecutive day numbers completed starting from day 1
   let s = 0;
   for (let i = 1; i <= BOOTCAMP_DAYS.length; i++) {
     if (bootcampData.completedDays[i]) s++;
@@ -48,10 +48,18 @@ function isTaskDone(dayNum, taskKey) {
   return !!bootcampData.taskDone[`${dayNum}-${taskKey}`];
 }
 
+// Three-task day progress. The third (plunge) auto-marks done when the
+// linked Medium problem gets marked solved — we detect that via the global
+// `done` set. Manual toggling still works.
 function dayProgress(dayNum) {
-  const tasks = ['learn', 'drills', 'problems', 'recall'];
-  const done = tasks.filter(t => isTaskDone(dayNum, t)).length;
-  return { done, total: tasks.length };
+  const d = BOOTCAMP_DAYS.find(x => x.day === dayNum);
+  const tasks = ['teach', 'warmup', 'plunge'];
+  const auto = {
+    warmup: d && done && done.has(d.warmupEasyId),
+    plunge: d && done && done.has(d.plungeMediumId),
+  };
+  const doneCount = tasks.filter(t => isTaskDone(dayNum, t) || auto[t]).length;
+  return { done: doneCount, total: tasks.length };
 }
 
 function startBootcamp() {
@@ -65,7 +73,7 @@ function startBootcamp() {
 }
 
 function resetBootcamp() {
-  if (!confirm('Reset all bootcamp progress? Your completion data will be lost (other quiz/learning data is unaffected).')) return;
+  if (!confirm('Reset all path progress? Your completion data will be lost (other quiz/learning data is unaffected).')) return;
   bootcampData = {
     startedAt: null, completedDays: {}, taskDone: {}, view: 'map', activeDay: null,
   };
@@ -132,6 +140,51 @@ function bootcampGoToMock() {
   switchMode('mock');
 }
 
+// ── Welcome modal (first-visit only) ──────────────────────────
+function maybeShowWelcomeModal() {
+  try {
+    const seen = localStorage.getItem('lovecode_welcomed') === '1';
+    const freshUser = (typeof done === 'undefined' || done.size === 0) &&
+                      (typeof problemData === 'undefined' || Object.keys(problemData || {}).length === 0);
+    if (seen || !freshUser) return;
+    showWelcomeModal();
+  } catch (_) {}
+}
+
+function showWelcomeModal() {
+  if (document.getElementById('welcomeOverlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'welcomeOverlay';
+  overlay.className = 'overlay open';
+  overlay.innerHTML = `
+    <div class="modal welcome-modal">
+      <h3>🎓 Welcome — here's the path.</h3>
+      <p><strong>7 days.</strong> Each day you'll <strong>learn one pattern</strong>, <strong>warm up on an Easy</strong>, and <strong>plunge into a real Medium</strong>. The Medium is the point — that's what interviews actually ask.</p>
+      <p>When you get stuck (you will), the hint ladder, pseudocode, brute-force walkthrough, and in-browser test runner are one click away. They appear <em>when you need them</em>, not by default.</p>
+      <p class="welcome-stats">⏱ ~2 hours/day · 7 days · 14 problems including 7 real Mediums</p>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="dismissWelcomeModal(false)">I'll explore first</button>
+        <button class="btn btn-primary" onclick="dismissWelcomeModal(true)">▶ Start Day 1: Hash Maps</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) dismissWelcomeModal(false);
+  });
+  document.body.appendChild(overlay);
+}
+
+function dismissWelcomeModal(committed) {
+  const el = document.getElementById('welcomeOverlay');
+  if (el) el.remove();
+  if (committed) {
+    try { localStorage.setItem('lovecode_welcomed', '1'); } catch (_) {}
+    startBootcamp();
+    setTimeout(() => openBootcampDay(1), 0);
+  }
+  // If not committed, do NOT set the flag — modal will reappear next session
+  // so the user gets another chance to commit.
+}
+
 // ── Rendering ──────────────────────────────────────────────────
 function renderBootcampMode() {
   if (bootcampData.view === 'day' && bootcampData.activeDay) renderBootcampDay(bootcampData.activeDay);
@@ -158,6 +211,20 @@ function renderBootcampMap() {
     else if (isCurrent) { statusBadge = '<span class="bc-status current">▶ Current</span>'; cls += ' current'; }
     else { statusBadge = `<span class="bc-status pending">${prog.done}/${prog.total} tasks</span>`; }
     const onclick = unlocked ? `onclick="openBootcampDay(${d.day})"` : '';
+
+    // 3-task mini-list
+    const easyP = (typeof problems !== 'undefined') ? problems.find(p => p.id === d.warmupEasyId) : null;
+    const medP = (typeof problems !== 'undefined') ? problems.find(p => p.id === d.plungeMediumId) : null;
+    const teachDone = isTaskDone(d.day, 'teach');
+    const warmDone  = (typeof done !== 'undefined' && done.has(d.warmupEasyId)) || isTaskDone(d.day, 'warmup');
+    const plungeDone = (typeof done !== 'undefined' && done.has(d.plungeMediumId)) || isTaskDone(d.day, 'plunge');
+    const tasksMini = `
+      <div class="bc-day-tasks">
+        <div class="bc-mini ${teachDone ? 'done' : ''}"><span class="bc-mini-icon">🧠</span><span class="bc-mini-text">Teach</span><span class="bc-mini-check">${teachDone ? '✓' : ''}</span></div>
+        <div class="bc-mini ${warmDone ? 'done' : ''}"><span class="bc-mini-icon">🌱</span><span class="bc-mini-text">${easyP ? easyP.name : 'Warmup'}</span><span class="bc-mini-check">${warmDone ? '✓' : ''}</span></div>
+        <div class="bc-mini ${plungeDone ? 'done' : ''}"><span class="bc-mini-icon">🌊</span><span class="bc-mini-text">${medP ? medP.name : 'Plunge'}</span><span class="bc-mini-check">${plungeDone ? '✓' : ''}</span></div>
+      </div>`;
+
     return `<div class="${cls}" ${onclick}>
       <div class="bc-day-num">DAY ${d.day}</div>
       <div class="bc-day-title">${d.title}</div>
@@ -165,16 +232,16 @@ function renderBootcampMap() {
         <span>⏱ ~${d.estMinutes} min</span>
         ${statusBadge}
       </div>
+      ${tasksMini}
     </div>`;
   };
 
-  const week1 = BOOTCAMP_DAYS.filter(d => d.week === 1).map(dayCard).join('');
-  const week2 = BOOTCAMP_DAYS.filter(d => d.week === 2).map(dayCard).join('');
+  const allDayCards = BOOTCAMP_DAYS.map(dayCard).join('');
 
   const heroBlock = started
     ? `<div class="bc-hero">
         <div class="bc-hero-left">
-          <div class="bc-hero-title">🚀 14-Day Interview Bootcamp</div>
+          <div class="bc-hero-title">🎓 7-Day Start Here Path</div>
           <div class="bc-hero-sub">Day ${next} is up. ${total - completed} day${total - completed === 1 ? '' : 's'} remaining.</div>
         </div>
         <div class="bc-hero-stats">
@@ -195,20 +262,17 @@ function renderBootcampMap() {
         ${completed > 0 ? `<button class="btn btn-ghost bc-reset" onclick="resetBootcamp()">↺ Reset progress</button>` : ''}
       </div>`
     : `<div class="bc-hero bc-hero-start">
-        <div class="bc-hero-title">🚀 14-Day Interview Bootcamp</div>
-        <p class="bc-hero-blurb">A structured daily course that takes you from foundations to pattern fluency in two weeks. Each day: 1 topic to learn, 8 minutes of drills, 2-3 priority problems, and a recall review. ~2 hours/day.</p>
-        <p class="bc-hero-blurb"><strong>Honest take:</strong> 14 days is realistic if you have some CS background and grind 2-3 hours daily. From zero, plan on 4-6 weeks. Either way, the path is the same — start now.</p>
-        <button class="btn btn-primary" onclick="startBootcamp()">▶ Start the Bootcamp</button>
+        <div class="bc-hero-title">🎓 7-Day Start Here Path</div>
+        <p class="bc-hero-blurb">One week. Each day you <strong>learn one pattern</strong>, <strong>warm up on an Easy</strong>, then <strong>plunge into a real Medium</strong> — the kind interviews actually ask. ~2 hours/day.</p>
+        <p class="bc-hero-blurb"><strong>The point:</strong> stop reading about patterns. Apply each one to a Medium the same day. The hint ladder, pseudocode, brute-force walkthrough, and in-browser runner are right there when you get stuck — but only when you ask.</p>
+        <button class="btn btn-primary" onclick="startBootcamp()">▶ Start the Path</button>
       </div>`;
 
   document.getElementById('appMain').innerHTML = `
     <div class="bc-container">
       ${heroBlock}
-      <div class="bc-week-label">Week 1 · Foundations</div>
-      <div class="bc-day-grid">${week1}</div>
-      <div class="bc-week-label">Week 2 · Patterns</div>
-      <div class="bc-day-grid">${week2}</div>
-      <div class="bc-footer">Tip: each day is meant to be done in one sitting. Mark tasks as you finish them; complete all four to unlock the next day.</div>
+      <div class="bc-day-grid">${allDayCards}</div>
+      <div class="bc-footer">Tip: each day is meant to be done in one sitting. Hit walls? The hint ladder + brute-force walkthrough + in-browser runner are inside each problem panel — use them when you're stuck, not before.</div>
     </div>`;
 }
 
@@ -216,46 +280,48 @@ function renderBootcampDay(dayNum) {
   const d = BOOTCAMP_DAYS.find(x => x.day === dayNum);
   if (!d) { closeBootcampDay(); return; }
 
-  const learnDone = isTaskDone(dayNum, 'learn');
-  const drillsDone = isTaskDone(dayNum, 'drills');
-  const problemsDone = isTaskDone(dayNum, 'problems');
-  const recallDone = isTaskDone(dayNum, 'recall');
-  const tasksTotal = 4;
-  const tasksDoneCount = [learnDone, drillsDone, problemsDone, recallDone].filter(Boolean).length;
+  const teachDone = isTaskDone(dayNum, 'teach');
+  const warmupAutoDone = typeof done !== 'undefined' && done.has(d.warmupEasyId);
+  const plungeAutoDone = typeof done !== 'undefined' && done.has(d.plungeMediumId);
+  const warmupDone = warmupAutoDone || isTaskDone(dayNum, 'warmup');
+  const plungeDone = plungeAutoDone || isTaskDone(dayNum, 'plunge');
+  const tasksTotal = 3;
+  const tasksDoneCount = [teachDone, warmupDone, plungeDone].filter(Boolean).length;
 
-  // 1. Learn topics block
-  const topicLinks = d.topicIds.map(tid => {
+  // Teach: link to Learn topic(s)
+  const topicLinks = (d.teachTopicIds || []).map(tid => {
     const t = LEARNING_TOPICS.find(x => x.id === tid);
     if (!t) return '';
     return `<button class="bc-link" onclick="bootcampGoToTopic('${tid}')">📚 ${t.title}</button>`;
   }).join('');
 
-  // 2. Drills target
-  const drill = BOOTCAMP_DRILL_TARGETS[d.drillFocus];
-  const drillBlock = drill
-    ? `<button class="bc-link" onclick="bootcampGoToDrill('${d.drillFocus}')">${drill.label} — ${drill.desc}</button>`
+  // Warmup Easy
+  const easyP = problems.find(p => p.id === d.warmupEasyId);
+  const easyDiff = easyP ? easyP.difficulty.toLowerCase() : '';
+  const warmupBlock = easyP
+    ? `<button class="bc-link bc-prob-link" onclick="bootcampGoToProblem(${d.warmupEasyId})">
+        <span class="bc-diff ${easyDiff}">${easyP.difficulty}</span>
+        <span class="bc-prob-name">${warmupAutoDone ? '✓ ' : ''}${easyP.name}</span>
+      </button>`
     : '';
 
-  // 3. Problem links
-  const probLinks = d.problemIds.map(pid => {
-    const p = problems.find(x => x.id === pid);
-    if (!p) return '';
-    const dCls = p.difficulty.toLowerCase();
-    const isDoneProb = done.has(pid) ? '✓ ' : '';
-    return `<button class="bc-link bc-prob-link" onclick="bootcampGoToProblem(${pid})">
-      <span class="bc-diff ${dCls}">${p.difficulty}</span>
-      <span class="bc-prob-name">${isDoneProb}${p.name}</span>
-    </button>`;
-  }).join('');
+  // Plunge Medium
+  const medP = problems.find(p => p.id === d.plungeMediumId);
+  const medDiff = medP ? medP.difficulty.toLowerCase() : '';
+  const plungeBlock = medP
+    ? `<button class="bc-link bc-prob-link" onclick="bootcampGoToProblem(${d.plungeMediumId})">
+        <span class="bc-diff ${medDiff}">${medP.difficulty}</span>
+        <span class="bc-prob-name">${plungeAutoDone ? '✓ ' : ''}${medP.name}</span>
+      </button>`
+    : '';
 
-  // 4. Mock-day flag
   const mockBlock = d.isMockDay
-    ? `<button class="bc-link" onclick="bootcampGoToMock()">🎯 Take a 45-minute Mock Interview</button>`
+    ? `<button class="bc-link" onclick="bootcampGoToMock()">🎯 Take a 45-minute Mock Interview (graduation)</button>`
     : '';
 
   document.getElementById('appMain').innerHTML = `
     <div class="bc-container bc-day-detail">
-      <button class="bc-back" onclick="closeBootcampDay()">← Back to Bootcamp Map</button>
+      <button class="bc-back" onclick="closeBootcampDay()">← Back to Path</button>
 
       <div class="bc-day-header">
         <div class="bc-day-num-large">DAY ${dayNum} of ${BOOTCAMP_DAYS.length}</div>
@@ -268,51 +334,38 @@ function renderBootcampDay(dayNum) {
         <p class="bc-day-desc">${d.description}</p>
       </div>
 
-      <div class="bc-task ${learnDone ? 'done' : ''}">
+      <div class="bc-task ${teachDone ? 'done' : ''}">
         <div class="bc-task-head">
-          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'learn')">${learnDone ? '✓' : '○'}</button>
+          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'teach')">${teachDone ? '✓' : '○'}</button>
           <div>
-            <div class="bc-task-title">1. Learn the topic${d.topicIds.length > 1 ? 's' : ''}</div>
-            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.20)} min · read the explainer + take comprehension checks</div>
+            <div class="bc-task-title">🧠 1. Teach — learn the pattern</div>
+            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.20)} min · just enough vocabulary to attempt today's plunge. Don't try to memorize everything.</div>
           </div>
         </div>
-        ${topicLinks ? `<div class="bc-task-actions">${topicLinks}</div>` : '<div class="bc-task-sub">Skip this — today\'s focus is review.</div>'}
+        ${topicLinks ? `<div class="bc-task-actions">${topicLinks}</div>` : '<div class="bc-task-sub">No teach step today.</div>'}
       </div>
 
-      <div class="bc-task ${drillsDone ? 'done' : ''}">
+      <div class="bc-task ${warmupDone ? 'done' : ''}">
         <div class="bc-task-head">
-          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'drills')">${drillsDone ? '✓' : '○'}</button>
+          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'warmup')">${warmupDone ? '✓' : '○'}</button>
           <div>
-            <div class="bc-task-title">2. Drill the patterns</div>
-            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.15)} min · drive snap recognition</div>
+            <div class="bc-task-title">🌱 2. Warmup — apply it on an Easy</div>
+            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.15)} min · build the muscle. Hint ladder is one click away if you stall.</div>
           </div>
         </div>
-        <div class="bc-task-actions">${drillBlock}</div>
+        <div class="bc-task-actions">${warmupBlock}</div>
       </div>
 
-      <div class="bc-task ${problemsDone ? 'done' : ''}">
+      <div class="bc-task ${plungeDone ? 'done' : ''}">
         <div class="bc-task-head">
-          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'problems')">${problemsDone ? '✓' : '○'}</button>
+          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'plunge')">${plungeDone ? '✓' : '○'}</button>
           <div>
-            <div class="bc-task-title">3. Solve today's problems</div>
-            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.55)} min · the bulk of the day. Try LeetCode-style: 25 min struggle before peeking</div>
+            <div class="bc-task-title">🌊 3. Plunge — a real Medium${d.isMockDay ? ' + Mock' : ''}</div>
+            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.55)} min · the point of today. Try it cold first. If you get stuck, use Hint 1, then Hint 2 — don't jump to the solution.</div>
           </div>
         </div>
-        ${probLinks ? `<div class="bc-task-actions bc-prob-list">${probLinks}</div>` : ''}
+        <div class="bc-task-actions">${plungeBlock}</div>
         ${mockBlock ? `<div class="bc-task-actions" style="margin-top:8px">${mockBlock}</div>` : ''}
-      </div>
-
-      <div class="bc-task ${recallDone ? 'done' : ''}">
-        <div class="bc-task-head">
-          <button class="bc-check" onclick="toggleBootcampTask(${dayNum}, 'recall')">${recallDone ? '✓' : '○'}</button>
-          <div>
-            <div class="bc-task-title">4. End-of-day Recall</div>
-            <div class="bc-task-sub">~${Math.round(d.estMinutes * 0.10)} min · 5-10 flashcards before you stop</div>
-          </div>
-        </div>
-        <div class="bc-task-actions">
-          <button class="bc-link" onclick="bootcampGoToDrill('flashcards')">📇 Open Recall Flashcards</button>
-        </div>
       </div>
 
       <div class="bc-day-footer">
@@ -321,4 +374,27 @@ function renderBootcampDay(dayNum) {
           : `<button class="btn btn-primary bc-complete-btn" onclick="completeBootcampDay(${dayNum})">Mark Day ${dayNum} Complete →</button>`}
       </div>
     </div>`;
+}
+
+// ── Helper exposed for the Problems panel's "Up Next" CTA ─────────
+// Returns { problemId, label } for the next thing in the active Bootcamp day,
+// or { day, label } if the active day's tasks are all done.
+function nextBootcampStep(currentProblemId) {
+  if (!bootcampData.startedAt) return null;
+  const dayNum = bootcampNextDay();
+  const d = BOOTCAMP_DAYS.find(x => x.day === dayNum);
+  if (!d) return null;
+  const isWarmup = currentProblemId === d.warmupEasyId;
+  const isPlunge = currentProblemId === d.plungeMediumId;
+  if (!isWarmup && !isPlunge) return null;
+  const warmupSolved = typeof done !== 'undefined' && done.has(d.warmupEasyId);
+  const plungeSolved = typeof done !== 'undefined' && done.has(d.plungeMediumId);
+  if (isWarmup && !plungeSolved) {
+    const medP = problems.find(p => p.id === d.plungeMediumId);
+    return medP ? { problemId: d.plungeMediumId, label: `🌊 Plunge: ${medP.name}` } : null;
+  }
+  if (isPlunge && plungeSolved && warmupSolved && dayNum < BOOTCAMP_DAYS.length) {
+    return { day: dayNum, label: `🎓 Day ${dayNum} complete · Open Day ${dayNum + 1}` };
+  }
+  return null;
 }

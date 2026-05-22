@@ -10,15 +10,14 @@
 <header>
   <h1>Blind 75</h1>
   <div class="mode-tabs">
-    <button class="mode-tab" id="tab-bootcamp" onclick="switchMode('bootcamp')">🚀 Bootcamp</button>
-    <button class="mode-tab active" id="tab-learn" onclick="switchMode('learn')">📚 Learn</button>
+    <button class="mode-tab active" id="tab-bootcamp" onclick="switchMode('bootcamp')">🎓 Start Here</button>
+    <button class="mode-tab" id="tab-learn" onclick="switchMode('learn')">📚 Learn</button>
     <button class="mode-tab" id="tab-drills" onclick="switchMode('drills')">🧠 Drills</button>
-    <button class="mode-tab" id="tab-bigo" onclick="switchMode('bigo')">Big-O</button>
-    <button class="mode-tab" id="tab-sorting" onclick="switchMode('sorting')">Sorting</button>
     <button class="mode-tab" id="tab-problems" onclick="switchMode('problems')">Problems</button>
     <button class="mode-tab" id="tab-build" onclick="switchMode('build')">🔨 Build</button>
     <button class="mode-tab" id="tab-recall" onclick="switchMode('recall')">📇 Recall</button>
     <button class="mode-tab" id="tab-mock" onclick="switchMode('mock')">🎯 Mock</button>
+    <button class="mode-tab" id="tab-foundations" onclick="switchMode('foundations')">📐 Foundations</button>
   </div>
   <div class="progress-bar" id="progressBar"><div class="progress-fill" id="pFill"></div></div>
   <span class="progress-text" id="pText">0 / 75</span>
@@ -91,6 +90,9 @@
 <script src="js/data/why-questions.js"></script>
 <script src="js/data/bootcamp.js"></script>
 <script src="js/data/example-tests.js"></script>
+<script src="js/data/problem-content.js"></script>
+<script src="js/data/example-pseudocode.js"></script>
+<script src="js/data/reference-code.js"></script>
 
 <!-- Shared helpers + global state -->
 <script src="js/utils.js"></script>
@@ -110,6 +112,8 @@
 <script src="js/bigo.js"></script>
 <script src="js/sorting.js"></script>
 <script src="js/mock.js"></script>
+<script src="js/indentation-help.js"></script>
+<script src="js/foundations.js"></script>
 
 <!-- Entry point: switchMode + init() (must come last) -->
 <script src="js/main.js"></script>

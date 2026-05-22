@@ -10,8 +10,7 @@ function switchMode(mode) {
   const m = document.getElementById('appMain');
   m.className = 'mode-' + mode;
   if (mode === 'problems') renderProblemsMode();
-  else if (mode === 'bigo') renderBigoMode();
-  else if (mode === 'sorting') renderSortingMode();
+  else if (mode === 'foundations') renderFoundationsMode();
   else if (mode === 'learn') renderLearnMode();
   else if (mode === 'drills') renderDrillsMode();
   else if (mode === 'build') renderBuildMode();
@@ -109,8 +108,9 @@ async function init() {
     document.getElementById('pText').textContent = '⚠ Server offline';
   }
 
-  // Default landing: Learn
-  switchMode('learn');
+  // Default landing: Bootcamp (the structured 28-day path is the front door for beginners)
+  switchMode('bootcamp');
+  maybeShowWelcomeModal();
 }
 
 init();

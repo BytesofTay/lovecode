@@ -315,6 +315,7 @@ const lineWalkOpen = {};   // key 'topicId-exIdx' → bool
 const typingOpen = {};     // key 'topicId-exIdx' → bool
 const typingInputs = {};   // key 'topicId-exIdx' → string (user's typed code)
 const typingRefShown = {}; // key 'topicId-exIdx' → bool
+const typingPseudoOpen = {}; // key 'topicId-exIdx' → bool
 
 function lineAnnotationsHtml(topicId, exIdx, code) {
   const key = `${topicId}-${exIdx}`;
@@ -449,10 +450,27 @@ function typingSectionHtml(topicId, exIdx, code) {
       </div>`;
     }
   }
+  const pseudoSteps = (typeof EXAMPLE_PSEUDOCODE !== 'undefined') ? EXAMPLE_PSEUDOCODE[key] : null;
+  const pseudoOpen = typingPseudoOpen[key];
+  const pseudoBlock = pseudoSteps && pseudoSteps.length
+    ? (pseudoOpen
+        ? `<div class="typing-pseudocode-box">
+            <div class="typing-pseudo-intro">Write the algorithm in English first. Translate to Python only after this feels right.</div>
+            <ol class="typing-pseudo-list">${pseudoSteps.map(s => `<li>${escape(s)}</li>`).join('')}</ol>
+          </div>`
+        : '')
+    : '';
+  const pseudoBtn = pseudoSteps && pseudoSteps.length
+    ? `<button class="btn btn-ghost btn-pseudo-toggle" onclick="toggleTypingPseudo('${topicId}', ${exIdx})">${pseudoOpen ? '🙈 Hide pseudocode' : '📝 Show pseudocode first'}</button>`
+    : '';
   return `<div class="typing-section" id="ts-${topicId}-${exIdx}">
     <h5>⌨️ Type it yourself</h5>
     <div class="typing-prompt">Implement this from scratch in the box below. Don't peek at the reference until you've tried.${hasTests ? ` This example has <strong>${tests.cases.length} test cases</strong> — click <em>Run Tests</em> to verify your solution.` : ''}</div>
-    <textarea class="typing-textarea" placeholder="def my_solution(...):\n    ..." oninput="updateTyping('${topicId}', ${exIdx}, this.value)">${escape(typed)}</textarea>
+    ${pseudoBtn ? `<div class="typing-pseudo-bar">${pseudoBtn}</div>` : ''}
+    ${pseudoBlock}
+    ${indentationHelpHtml('typing-' + topicId + '-' + exIdx)}
+    <div class="kbd-hint" style="margin:-2px 0 4px"><kbd>Tab</kbd> = 4 spaces · <kbd>Enter</kbd> auto-indents after <code>:</code></div>
+    <textarea class="typing-textarea code-input" placeholder="def my_solution(...):\n    ..." oninput="updateTyping('${topicId}', ${exIdx}, this.value)" onkeydown="handleCodeKey(event)">${escape(typed)}</textarea>
     ${diffSummary}
     <div class="typing-actions">
       ${hasTests ? `<button class="btn btn-run-tests" onclick="runTypingTests('${topicId}', ${exIdx})">▶ Run Tests</button>` : ''}
@@ -511,6 +529,12 @@ function toggleTypingPractice(topicId, exIdx) {
 function toggleTypingReference(topicId, exIdx) {
   const key = `${topicId}-${exIdx}`;
   typingRefShown[key] = !typingRefShown[key];
+  rerenderExampleExtras(topicId, exIdx);
+}
+
+function toggleTypingPseudo(topicId, exIdx) {
+  const key = `${topicId}-${exIdx}`;
+  typingPseudoOpen[key] = !typingPseudoOpen[key];
   rerenderExampleExtras(topicId, exIdx);
 }
 

@@ -1,123 +1,77 @@
-// ── 14-Day Interview Bootcamp curriculum ─────────────────────────────────
-// One pack per day. Each day pulls from existing Learn topics, Drills, and
-// the Problems list — the bootcamp is a SCHEDULER, not a new content engine.
-// User clicks day → sees a checklist → opens each item → marks day complete.
+// ── 7-Day Start Here Path ─────────────────────────────────────────────────
+// Compressed pathway designed to get a beginner from zero → realistic Medium
+// interview readiness in one week of focused work. Each day has the same
+// 3-task shape — that's the "mix" of structured teaching and top-down plunge:
+//
+//   🧠 Teach        — 15–20 min — one Learn topic for baseline vocabulary
+//   🌱 Warmup Easy  — 15 min     — apply the pattern on an Easy problem
+//   🌊 Plunge Medium — 45–60 min — a real Medium that interviews actually ask
+//
+// Hints, pseudocode, brute-force walkthroughs, and the in-browser runner
+// surface inside problem panels — but only when the user clicks for them.
 const BOOTCAMP_DAYS = [
-  // ── WEEK 1: FOUNDATIONS ────────────────────────────────────────
   {
-    day: 1, week: 1, title: 'Big-O & Array Basics',
-    topicIds: ['big-o', 'arrays'],
-    problemIds: [1, 2, 5],
-    estMinutes: 120,
-    description: 'Build the complexity vocabulary, then warm up on classic array problems with running-state tricks (running min, Kadane\'s).',
-    drillFocus: 'snippets',
-  },
-  {
-    day: 2, week: 1, title: 'Hash Maps',
-    topicIds: ['hashmap'],
-    problemIds: [1, 53, 54, 3],
-    estMinutes: 120,
+    day: 1, title: 'Hash Maps',
+    teachTopicIds: ['hashmap'],
+    warmupEasyId: 1,        // Two Sum
+    plungeMediumId: 54,     // Group Anagrams
+    estMinutes: 100,
     description: 'The most useful interview data structure. Trade memory for time: turn O(n²) brute force into O(n) lookups.',
     drillFocus: 'snippets',
   },
   {
-    day: 3, week: 1, title: 'Two Pointers',
-    topicIds: ['two-pointers'],
-    problemIds: [56, 9, 10],
-    estMinutes: 150,
-    description: 'Converging pointers turn many O(n²) problems into O(n). Sorted-array tricks; in-place comparisons.',
+    day: 2, title: 'Two Pointers + Sliding Window',
+    teachTopicIds: ['two-pointers', 'sliding-window'],
+    warmupEasyId: 56,       // Valid Palindrome
+    plungeMediumId: 50,     // Longest Substring Without Repeating Characters
+    estMinutes: 110,
+    description: 'Two converging pointers turn many O(n²) problems into O(n). Variable-size sliding windows expand/shrink to satisfy a constraint.',
     drillFocus: 'patterns',
   },
   {
-    day: 4, week: 1, title: 'Sliding Window',
-    topicIds: ['sliding-window'],
-    problemIds: [50, 51, 52],
-    estMinutes: 150,
-    description: 'Variable-window expand/shrink template. Probably the highest-leverage pattern — it shows up everywhere.',
-    drillFocus: 'snippets',
+    day: 3, title: 'Stack + Linked List',
+    teachTopicIds: ['stack-queue', 'linked-list'],
+    warmupEasyId: 55,       // Valid Parentheses
+    plungeMediumId: 44,     // Remove Nth Node From End of List
+    estMinutes: 110,
+    description: 'LIFO matching for nested structures + pointer choreography on linked lists. Two of the most-asked categories.',
+    drillFocus: 'parsons',
   },
   {
-    day: 5, week: 1, title: 'Strings & Stack',
-    topicIds: ['strings', 'stack-queue'],
-    problemIds: [55, 57, 44],
-    estMinutes: 120,
-    description: 'Apply yesterday\'s patterns to strings. Add the stack/queue toolkit (LIFO matching, FIFO BFS prep).',
-    drillFocus: 'patterns',
-  },
-  {
-    day: 6, week: 1, title: 'Binary Search',
-    topicIds: ['binary-search'],
-    problemIds: [7, 8],
-    estMinutes: 120,
-    description: 'Halving the search space. Classic + the rotated-array trick + binary search on a monotonic predicate.',
-    drillFocus: 'snippets',
-  },
-  {
-    day: 7, week: 1, title: 'Mid-Bootcamp Mock + Review',
-    topicIds: [],
-    problemIds: [],
+    day: 4, title: 'Binary Search',
+    teachTopicIds: ['binary-search'],
+    warmupEasyId: 7,        // Find Minimum in Rotated Sorted Array (lowest-easy in this bucket)
+    plungeMediumId: 8,      // Search in Rotated Sorted Array
     estMinutes: 90,
-    description: 'Take a 45-minute mock interview using a problem you haven\'t seen. Then review yesterday\'s weak spots.',
-    drillFocus: 'lazy',
-    isMockDay: true,
-  },
-
-  // ── WEEK 2: PATTERNS ───────────────────────────────────────────
-  {
-    day: 8, week: 2, title: 'Linked Lists',
-    topicIds: ['linked-list'],
-    problemIds: [40, 41, 42],
-    estMinutes: 120,
-    description: 'Pointer choreography: reverse, cycle detect (Floyd\'s), dummy-head merging. The flip-step is muscle memory.',
-    drillFocus: 'parsons',
-  },
-  {
-    day: 9, week: 2, title: 'Trees: Recursion Basics',
-    topicIds: ['trees', 'recursion'],
-    problemIds: [60, 61, 62],
-    estMinutes: 150,
-    description: 'Universal tree template: handle null → recurse on children → combine. Burn this shape into reflex.',
+    description: 'Halving the search space. Classic O(log n) + the rotated-array variant interviewers love.',
     drillFocus: 'snippets',
   },
   {
-    day: 10, week: 2, title: 'Trees: BST + BFS',
-    topicIds: ['trees', 'bfs-dfs'],
-    problemIds: [68, 70, 64],
-    estMinutes: 150,
-    description: 'BST property (left &lt; node &lt; right) + level-order BFS with len(queue) trick. Two more reusable templates.',
-    drillFocus: 'patterns',
+    day: 5, title: 'Trees + Recursion',
+    teachTopicIds: ['trees', 'recursion'],
+    warmupEasyId: 60,       // Maximum Depth of Binary Tree
+    plungeMediumId: 63,     // Validate Binary Search Tree
+    estMinutes: 110,
+    description: 'Universal tree template: handle null → recurse on children → combine. Then add BST invariants and bounds propagation.',
+    drillFocus: 'snippets',
   },
   {
-    day: 11, week: 2, title: 'Graphs',
-    topicIds: ['graphs', 'bfs-dfs'],
-    problemIds: [30, 28, 27],
-    estMinutes: 150,
-    description: 'Number of Islands, Course Schedule (topo sort), Clone Graph. Visited sets, in-degrees, hash-map traversals.',
-    drillFocus: 'patterns',
-  },
-  {
-    day: 12, week: 2, title: 'Backtracking',
-    topicIds: ['backtracking', 'recursion'],
-    problemIds: [49, 81],
-    estMinutes: 150,
-    description: 'Choose → recurse → un-choose. Word Search, Subsets/Permutations. The pop step IS the algorithm.',
-    drillFocus: 'parsons',
-  },
-  {
-    day: 13, week: 2, title: 'Dynamic Programming',
-    topicIds: ['dp'],
-    problemIds: [16, 22, 17],
-    estMinutes: 180,
-    description: 'Climbing Stairs, House Robber, Coin Change. Capstone topic — give it extra time. Practice both top-down and bottom-up.',
-    drillFocus: 'templates',
-  },
-  {
-    day: 14, week: 2, title: 'Heap, Final Mock & Weak Spots',
-    topicIds: ['heaps'],
-    problemIds: [74, 75],
+    day: 6, title: 'Graphs (BFS / DFS)',
+    teachTopicIds: ['graphs', 'bfs-dfs'],
+    warmupEasyId: 30,       // Number of Islands (technically Medium-labeled but core BFS/DFS warmup)
+    plungeMediumId: 28,     // Course Schedule (topological sort)
     estMinutes: 120,
-    description: 'Top-K with min-heap, two-heap median trick. Then: 45-minute final mock interview + drill your weakest topics from the dashboard.',
-    drillFocus: 'flashcards',
+    description: 'Grid BFS/DFS for connected components, then graph topological sort with in-degrees. The "graph reduction" interview skill.',
+    drillFocus: 'patterns',
+  },
+  {
+    day: 7, title: 'Dynamic Programming + Graduation',
+    teachTopicIds: ['dp'],
+    warmupEasyId: 16,       // Climbing Stairs
+    plungeMediumId: 17,     // Coin Change
+    estMinutes: 130,
+    description: 'Bottom-up DP with rolling state, then min-cost subproblem composition. Finish with a 45-minute Mock interview to graduate the path.',
+    drillFocus: 'templates',
     isMockDay: true,
   },
 ];

@@ -25,32 +25,41 @@ async function ensurePyodide(progressCallback) {
   return _pyodideLoading;
 }
 
-async function runUserCode(userCode, funcName, testCases, compare) {
+async function runUserCode(userCode, funcName, testCases, compare, setup) {
   const py = await ensurePyodide();
   const compareCheck = compare === 'set-of-sets'
     ? `_passed = sorted([sorted(x) for x in _actual]) == sorted([sorted(x) for x in _t['expected']])`
-    : `_passed = _actual == _t['expected']`;
+    : compare === 'set'
+      ? `_passed = sorted(_actual) == sorted(_t['expected'])`
+      : `_passed = _actual == _t['expected']`;
+  const setupBlock = setup ? `# ── Setup (helpers + transforms) ──\n${setup}\n# ── End setup ──\n` : '';
   const harness = `
 import json, sys, traceback
+${setupBlock}
 # ── User code starts ──
 ${userCode}
 # ── User code ends ──
 
 _test_cases = ${JSON.stringify(testCases)}
 _func = globals().get(${JSON.stringify(funcName)})
+_has_in = '_transform_input' in globals()
+_has_out = '_transform_output' in globals()
 _results = []
 if _func is None:
     _results.append({'passed': False, 'error': 'Function ' + ${JSON.stringify(funcName)} + ' is not defined in your code.'})
 else:
     for _t in _test_cases:
         try:
-            _args = _t['input']
+            _raw_args = _t['input']
+            _args = _transform_input(_raw_args) if _has_in else _raw_args
             if isinstance(_args, list):
                 _actual = _func(*_args)
             elif isinstance(_args, dict):
                 _actual = _func(**_args)
             else:
                 _actual = _func(_args)
+            if _has_out:
+                _actual = _transform_output(_actual)
             ${compareCheck}
             _results.append({
                 'passed': bool(_passed),
