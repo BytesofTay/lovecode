@@ -14,7 +14,14 @@
 const REFERENCE_CODE = (function buildReferenceCode() {
   const out = {};
 
-  // Source 4 (lowest priority — populate first, others overwrite)
+  // Source 5 (lowest priority — manual solutions for problems with no other source)
+  if (typeof MANUAL_SOLUTIONS !== 'undefined') {
+    for (const [id, code] of Object.entries(MANUAL_SOLUTIONS)) {
+      out[parseInt(id)] = code;
+    }
+  }
+
+  // Source 4 (overrides manual solutions where learning-topic examples exist)
   if (typeof LEARNING_TOPICS !== 'undefined') {
     for (const topic of LEARNING_TOPICS) {
       for (const ex of topic.examples || []) {
