@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const path = require('path');
+const crypto = require('crypto');
 
 function createApp(col) {
 const app = express();
@@ -11,6 +12,13 @@ const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 
 app.use(express.json());
+app.use((req, res, next) => {
+  const match = /(?:^|;\s*)lovecode_sid=([^;]+)/.exec(req.headers.cookie || '');
+  const sid = match?.[1] || crypto.randomBytes(24).toString('hex');
+  req.lovecodeSid = sid;
+  if (!match) res.setHeader('Set-Cookie', `lovecode_sid=${sid}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`);
+  next();
+});
 app.get('/classic', (req, res) => res.redirect('/classic/'));
 app.get('/classic/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 for (const folder of ['js', 'css']) app.use(`/classic/${folder}`, express.static(path.join(__dirname, folder)));
@@ -34,12 +42,12 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-async function getState() {
-  return (await col.findOne({ _id: 'user' })) || { _id: 'user', done: [], review: [], problems: {} };
+async function getState(req) {
+  return (await col.findOne({ _id: req.lovecodeSid })) || { _id: req.lovecodeSid, done: [], review: [], problems: {} };
 }
 
 app.get('/api/state', async (req, res) => {
-  try { res.json(await getState()); }
+  try { res.json(await getState(req)); }
   catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
@@ -47,7 +55,7 @@ app.post('/api/set-done', async (req, res) => {
   try {
     const { id, value } = req.body;
     const op = value ? { $addToSet: { done: id } } : { $pull: { done: id } };
-    await col.updateOne({ _id: 'user' }, op, { upsert: true });
+    await col.updateOne({ _id: req.lovecodeSid }, op, { upsert: true });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
@@ -56,7 +64,7 @@ app.post('/api/set-review', async (req, res) => {
   try {
     const { id, value } = req.body;
     const op = value ? { $addToSet: { review: id } } : { $pull: { review: id } };
-    await col.updateOne({ _id: 'user' }, op, { upsert: true });
+    await col.updateOne({ _id: req.lovecodeSid }, op, { upsert: true });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
@@ -65,7 +73,7 @@ app.post('/api/log-attempt', async (req, res) => {
   try {
     const { id, elapsed, outcome } = req.body;
     await col.updateOne(
-      { _id: 'user' },
+      { _id: req.lovecodeSid },
       { $push: { [`problems.${id}.attempts`]: { ts: Date.now(), elapsed, outcome } } },
       { upsert: true }
     );
@@ -77,7 +85,7 @@ app.post('/api/save-note', async (req, res) => {
   try {
     const { id, text } = req.body;
     await col.updateOne(
-      { _id: 'user' },
+      { _id: req.lovecodeSid },
       { $set: { [`problems.${id}.notes`]: text } },
       { upsert: true }
     );
@@ -89,7 +97,7 @@ app.post('/api/log-mock', async (req, res) => {
   try {
     const { problemId, durationSec, outcome, rubric } = req.body;
     await col.updateOne(
-      { _id: 'user' },
+      { _id: req.lovecodeSid },
       { $push: { mockHistory: { ts: Date.now(), problemId, durationSec, outcome, rubric } } },
       { upsert: true }
     );
@@ -101,7 +109,7 @@ app.post('/api/learning', async (req, res) => {
   try {
     const { topicId, field, value } = req.body;
     await col.updateOne(
-      { _id: 'user' },
+      { _id: req.lovecodeSid },
       { $set: {
           [`learning.${topicId}.${field}`]: value,
           [`learning.${topicId}.lastVisited`]: Date.now(),
@@ -116,7 +124,7 @@ app.post('/api/log-quiz', async (req, res) => {
   try {
     const { quizType, questionId, correct } = req.body;
     await col.updateOne(
-      { _id: 'user' },
+      { _id: req.lovecodeSid },
       { $push: { [`quiz.${quizType}.${questionId}.attempts`]: { ts: Date.now(), correct } } },
       { upsert: true }
     );
@@ -126,7 +134,7 @@ app.post('/api/log-quiz', async (req, res) => {
 
 app.get('/api/export', async (req, res) => {
   try {
-    const state = await getState();
+    const state = await getState(req);
     delete state._id;
     res.setHeader('Content-Disposition', 'attachment; filename="blind75-backup.json"');
     res.json(state);
@@ -135,8 +143,8 @@ app.get('/api/export', async (req, res) => {
 
 app.post('/api/import', async (req, res) => {
   try {
-    const data = { ...req.body, _id: 'user' };
-    await col.replaceOne({ _id: 'user' }, data, { upsert: true });
+    const data = { ...req.body, _id: req.lovecodeSid };
+    await col.replaceOne({ _id: req.lovecodeSid }, data, { upsert: true });
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });

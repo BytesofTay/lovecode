@@ -12,10 +12,11 @@ LoveCode is a deliberate-practice workspace for technical interviews. It combine
 
 ## Stack
 
-- **React + Vite:** responsive product landing page in `client/`.
+- **React + Vite:** a tested core practice journey in `client/` with problem search, notes, completion, review, progress, loading, and error states.
 - **Node.js + Express:** API and static hosting in `server.js`.
 - **MongoDB:** persistence for progress, notes, attempts, quizzes, and mock sessions.
-- **Legacy study UI:** the complete learning workspace remains available at `/classic` while the React migration continues incrementally.
+- **Legacy study UI:** the complete learning workspace remains available at `/classic` while the remaining modes migrate incrementally.
+- **Guest sessions:** the server issues an HTTP-only browser session cookie and scopes stored progress to that session.
 
 ## Run locally
 
@@ -27,7 +28,7 @@ npm run build
 MONGO_URI=mongodb://localhost:27017 PORT=3000 npm start
 ```
 
-Open `http://localhost:3000` for the React experience or `http://localhost:3000/classic` for the complete practice workspace.
+Open `http://localhost:3000` for the React practice journey or `http://localhost:3000/classic` for the complete practice workspace.
 
 For development, run `npm run build` after client changes and `npm run dev` for the Express server. The API uses `/api/state`, `/api/set-done`, `/api/set-review`, `/api/log-attempt`, `/api/save-note`, `/api/log-quiz`, `/api/log-mock`, `/api/learning`, `/api/export`, and `/api/import`.
 
