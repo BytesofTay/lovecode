@@ -12,7 +12,7 @@ LoveCode is a deliberate-practice workspace for technical interviews. It combine
 
 ## Stack
 
-- **React + Vite:** a tested core practice journey in `client/` with problem search, notes, completion, review, progress, loading, and error states.
+- **React + Vite:** a tested core practice journey in `client/` with problem search, notes, completion, review, timed attempts, progress, loading, and error states.
 - **Node.js + Express:** API and static hosting in `server.js`.
 - **MongoDB:** persistence for progress, notes, attempts, quizzes, and mock sessions.
 - **Legacy study UI:** the complete learning workspace remains available at `/classic` while the remaining modes migrate incrementally.

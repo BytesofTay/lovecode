@@ -22,6 +22,8 @@ test('API validates input, saves notes, and protects server files', async t => {
   assert.equal((await get('/classic/js/main.js')).status,200);
   assert.equal((await post('/api/save-note',{id:'bad.path',text:'x'})).status,400);
   assert.equal((await post('/api/set-done',{id:1,value:'false'})).status,400);
+  assert.equal((await post('/api/log-attempt',{id:'1',elapsed:-1,outcome:'solved'})).status,400);
+  assert.equal((await post('/api/log-attempt',{id:'1',elapsed:42,outcome:'solved'})).status,200);
   assert.equal((await post('/api/save-note',{id:1,text:'Review sliding windows'})).status,200);
   assert.equal((await (await get('/api/state')).json()).problems['1'].notes,'Review sliding windows');
   const exported = await (await get('/api/export')).json();

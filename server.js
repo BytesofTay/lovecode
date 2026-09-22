@@ -38,6 +38,7 @@ app.use('/api', (req, res, next) => {
   if (fields.some(key => !['string', 'number'].includes(typeof body[key]) || !/^[a-zA-Z0-9_-]{1,100}$/.test(String(body[key])) || ['__proto__', 'constructor', 'prototype'].includes(String(body[key])))) return res.status(400).json({error: 'Invalid identifier'});
   if (['/set-done', '/set-review'].includes(req.path) && typeof body.value !== 'boolean') return res.status(400).json({error: 'Expected boolean value'});
   if (req.path === '/save-note' && (typeof body.text !== 'string' || body.text.length > 20000)) return res.status(400).json({error: 'Invalid note'});
+  if (req.path === '/log-attempt' && (!Number.isFinite(body.elapsed) || body.elapsed < 0 || body.elapsed > 86400 || !['solved', 'hint', 'stuck'].includes(body.outcome))) return res.status(400).json({error: 'Invalid attempt'});
   if (req.path === '/learning' && !['videoWatched', 'complete', 'lastVisited'].includes(body.field)) return res.status(400).json({error: 'Invalid learning field'});
   next();
 });
