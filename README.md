@@ -34,7 +34,7 @@ For development, run `npm run build` after client changes and `npm run dev` for 
 ## Quality and security
 
 - `.env` and `.env.*` are ignored; keep local MongoDB credentials out of Git.
-- `npm test` checks the React entry point.
+- `npm test` exercises the Express API over HTTP.
 - `npm run build` verifies the production client bundle.
 - GitHub Actions runs both checks on pushes and pull requests.
 
@@ -48,3 +48,11 @@ For development, run `npm run build` after client changes and `npm run dev` for 
 ## License
 
 Private-use project. No license is granted for redistribution.
+
+## Architecture and verification
+
+The React entry page links to the existing study workspace. Express exposes the study assets through an explicit allowlist rather than serving repository files. MongoDB stores one personal study record. The server binds to localhost by default; it is a single-user local application, not a public multi-user service.
+
+The API tests use a collection double and real HTTP requests to verify note persistence, export/import round-tripping, invalid input rejection, static-file boundaries, and sanitized database errors. They do not establish real MongoDB durability or complete browser coverage. Run `npm test` and `npm run build`.
+
+**Next milestone:** authenticated per-user storage, complete browser tests, and migration of study modes into React. A public hosted demo is not yet verified.

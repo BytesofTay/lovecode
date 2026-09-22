@@ -6,7 +6,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "vite build --config client/vite.config.js",
-    "test": "node --test client/src/App.test.js"
+    "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "dotenv": "^16.3.1",

@@ -3,15 +3,36 @@ const express = require('express');
 const { MongoClient } = require('mongodb');
 const path = require('path');
 
+function createApp(col) {
 const app = express();
+app.enable('strict routing');
+app.disable("x-powered-by");
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 
 app.use(express.json());
-app.use('/classic', express.static(__dirname));
+app.get('/classic', (req, res) => res.redirect('/classic/'));
+app.get('/classic/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+for (const folder of ['js', 'css']) app.use(`/classic/${folder}`, express.static(path.join(__dirname, folder)));
+app.get('/api/health', (req, res) => res.json({status: 'ok'}));
 app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
-let col;
+// Reject unsafe MongoDB path segments before constructing update paths.
+app.use('/api', (req, res, next) => {
+  if (req.method !== 'POST') return next();
+  const body = req.body;
+  if (!body || Array.isArray(body) || typeof body !== 'object') return res.status(400).json({error: 'Expected a JSON object'});
+  const fields = {
+    '/set-done': ['id'], '/set-review': ['id'], '/save-note': ['id'],
+    '/log-attempt': ['id'], '/learning': ['topicId', 'field'],
+    '/log-quiz': ['quizType', 'questionId'], '/log-mock': ['problemId']
+  }[req.path] || [];
+  if (fields.some(key => !['string', 'number'].includes(typeof body[key]) || !/^[a-zA-Z0-9_-]{1,100}$/.test(String(body[key])) || ['__proto__', 'constructor', 'prototype'].includes(String(body[key])))) return res.status(400).json({error: 'Invalid identifier'});
+  if (['/set-done', '/set-review'].includes(req.path) && typeof body.value !== 'boolean') return res.status(400).json({error: 'Expected boolean value'});
+  if (req.path === '/save-note' && (typeof body.text !== 'string' || body.text.length > 20000)) return res.status(400).json({error: 'Invalid note'});
+  if (req.path === '/learning' && !['videoWatched', 'complete', 'lastVisited'].includes(body.field)) return res.status(400).json({error: 'Invalid learning field'});
+  next();
+});
 
 async function getState() {
   return (await col.findOne({ _id: 'user' })) || { _id: 'user', done: [], review: [], problems: {} };
@@ -19,7 +40,7 @@ async function getState() {
 
 app.get('/api/state', async (req, res) => {
   try { res.json(await getState()); }
-  catch (e) { res.status(500).json({ error: e.message }); }
+  catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/set-done', async (req, res) => {
@@ -28,7 +49,7 @@ app.post('/api/set-done', async (req, res) => {
     const op = value ? { $addToSet: { done: id } } : { $pull: { done: id } };
     await col.updateOne({ _id: 'user' }, op, { upsert: true });
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/set-review', async (req, res) => {
@@ -37,7 +58,7 @@ app.post('/api/set-review', async (req, res) => {
     const op = value ? { $addToSet: { review: id } } : { $pull: { review: id } };
     await col.updateOne({ _id: 'user' }, op, { upsert: true });
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/log-attempt', async (req, res) => {
@@ -49,7 +70,7 @@ app.post('/api/log-attempt', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/save-note', async (req, res) => {
@@ -61,7 +82,7 @@ app.post('/api/save-note', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/log-mock', async (req, res) => {
@@ -73,7 +94,7 @@ app.post('/api/log-mock', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/learning', async (req, res) => {
@@ -88,7 +109,7 @@ app.post('/api/learning', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/log-quiz', async (req, res) => {
@@ -100,7 +121,7 @@ app.post('/api/log-quiz', async (req, res) => {
       { upsert: true }
     );
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.get('/api/export', async (req, res) => {
@@ -109,7 +130,7 @@ app.get('/api/export', async (req, res) => {
     delete state._id;
     res.setHeader('Content-Disposition', 'attachment; filename="blind75-backup.json"');
     res.json(state);
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
 app.post('/api/import', async (req, res) => {
@@ -117,13 +138,17 @@ app.post('/api/import', async (req, res) => {
     const data = { ...req.body, _id: 'user' };
     await col.replaceOne({ _id: 'user' }, data, { upsert: true });
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) { res.status(500).json({ error: "Unable to save or load study data" }); }
 });
 
-MongoClient.connect(MONGO_URI)
+return app;
+}
+module.exports = { createApp };
+
+if (require.main === module) MongoClient.connect(MONGO_URI)
   .then(client => {
-    col = client.db('blind75').collection('state');
-    app.listen(PORT, () => console.log(`Blind 75 → http://localhost:${PORT}`));
+    const app = createApp(client.db('blind75').collection('state'));
+    app.listen(PORT, process.env.HOST || '127.0.0.1', () => console.log(`Blind 75 → http://localhost:${PORT}`));
   })
   .catch(err => {
     console.error('MongoDB connection failed:', err.message);
