@@ -8,7 +8,8 @@ const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use('/classic', express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
 let col;
 
